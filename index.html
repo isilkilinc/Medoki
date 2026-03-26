@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <title>Medoki: Akıllı Sağlık Rehberi</title>
+    <meta name="description" content="İlaç prospektüslerini ve semptomları yapay zeka ile sadeleştirir." />
+    <meta name="theme-color" content="#0b1220" />
+
+    <meta property="og:title" content="Medoki — Sade Sağlık Asistanı" />
+    <meta property="og:description" content="İlaç prospektüslerini ve semptomları yapay zeka ile sadeleştirir." />
+    <meta property="og:type" content="website" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <script>
+      if (localStorage.getItem("theme") !== "light") {
+        document.documentElement.classList.add("dark");
+      }
+    </script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
