@@ -12,9 +12,13 @@ Medoki; prospektüsleri saniyeler içinde halkın anlayacağı temizlikte özetl
 
 ## 🛠️ Kullanılan Teknolojiler
 - **AI Engine:** Groq AI API & Gemini (Prompt Engineering)
-- **Development Environment:** Antigravity (Agent Mode)
-- **Frontend:** Lovable / React (Neon Glassmorphism UI)
-- **Styling:** Tailwind CSS
+- **Geliştirme Ortamı (IDE):** Antigravity / Cursor (Agent Mode)
+- **Frontend Framework:** Lovable / React (Vite)
+- **Programlama Dili:** TypeScript
+- **Styling (Tasarım):** Tailwind CSS
+- **Runtime & Paket Yönetimi:** Bun
+- **Altyapı & Tasarım Yardımı:** Lovable
+- **Test:** Playwright
 - **Deployment:** Vercel / GitHub
 
 ## 🏆 Buildathon 2026 Detayları
