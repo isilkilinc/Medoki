@@ -1,30 +1,26 @@
-# Medoki: Akıllı Sağlık Rehberi 💙
+# Medoki: Akıllı Sağlık Rehberi
 
-Medoki, sıklıkla tıbbi dilden dolayı kafa karıştıran uzun ilaç prospektüslerini ve basit semptom/rahatsızlık ihtiyaçlarını saniyeler içerisinde **halkın anlayacağı temizlikte** özetleyen, otonom ve modern bir sağlık asistanıdır.
+## 💡 Problem
+Sıklıkla tıbbi dilden dolayı kafa karıştıran uzun ilaç prospektüslerini ve basit semptom/rahatsızlık ihtiyaçlarını anlamak, halkın genel sağlığı için büyük bir engel teşkil etmektedir. Özellikle ilaç içeriklerindeki gizli alerjenler ve diyet kısıtlamalarına (vegan, helal vb.) yönelik bilgiye ulaşmak oldukça zordur.
 
-## 🏆 Buildathon 2026 Submission
+## 🚀 Çözüm
+Medoki; prospektüsleri saniyeler içinde halkın anlayacağı temizlikte özetleyen, otonom ve modern bir sağlık asistanıdır. Yapay zeka motoru sayesinde ilaçların sadece özetini çıkarmakla kalmaz, içerikteki hassas maddeleri ve alerjenleri saniyeler içinde analiz ederek kullanıcıya özel uyarılar sunar.
 
-Bu repo, *Lovable* ve *Groq AI* altyapısı kullanılarak geliştirilmiş, UX (Kullanıcı deneyimi) odaklı, hem hafif, hem görseli zengin (Gece/Gündüz modlu Neon Glassmorphism), hem de yanılma/yanlış cevap üretme payı (Hallucination) "Doğrulama (Validation)" kalkanıyla sıfıra indirilmiş mükemmel bir sağlık çözümüdür.
+## 🔗 Canlı Demo & Video
+- **Yayın Linki:** https://medoki.vercel.app/
+- **Demo Video (2-3 dk):** [Buraya Loom/YouTube Linkini Yapıştır]
 
-## 🚀 Başlangıç ve Kurulum
+## 🛠️ Kullanılan Teknolojiler
+- **AI Engine:** Groq AI API & Gemini (Prompt Engineering)
+- **Development Environment:** Antigravity (Agent Mode)
+- **Frontend:** Lovable / React (Neon Glassmorphism UI)
+- **Styling:** Tailwind CSS
+- **Deployment:** Vercel / GitHub
 
-Öncelikle yapay zeka motorunun çalışması için bir **Groq API** anahtarına ihtiyacınız var:
-1. Sitemizde kök dizinde `.env` (env var) adında bir dosya oluşturun ve içine geçerli bir anahtar girin: 
-   \`VITE_GROQ_API_KEY=gsk_sizin_anahtariniz_muko_bir_sey\`
-2. Standart bağımlılıkları terminal üzerinden yükleyin:
-   ```bash
-   npm install
-   ```
-3. Yerel sunucuyu HMR (Hot Module Replacement) modunda başlatın:
-   ```bash
-   npm run dev
-   ```
+## 🏆 Buildathon 2026 Detayları
+Bu repo, UX odaklı hem hafif hem görseli zengin bir deneyim sunar. Yanılma/yanlış cevap üretme payını (Hallucination) "Doğrulama (Validation)" kalkanıyla sıfıra indirmeyi hedefleyen bir sağlık çözümüdür. 
 
-## 📁 Teknik Belgeler (Sistem Mimarisi)
-Buildathon jürisi ve geliştiriciler için özel hazırlanmış Markdown modüllerini okuyarak projenin scope/vizyon derinliğini inceleyebilirsiniz:
-- [Proje Fikri, Hedef Kitle ve USP (idea.md)](./idea.md)
-- [Teknik Ürün İsterleri (prd.md)](./prd.md)
-- [Kullanıcı Akış Sistemi (user-flow.md)](./user-flow.md)
-- [Teknoloji Stack'i (tech-stack.md)](./tech-stack.md)
-
-*Lovable Agent ve Antigravity partnerliği ile Buildathon için kodlanmıştır.*
+## 💻 Nasıl Çalıştırılır?
+1. .env dosyası oluşturun...
+2. npm install...
+3. npm run dev...
