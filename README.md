@@ -12,6 +12,7 @@ Medoki; prospektüsleri saniyeler içinde halkın anlayacağı temizlikte özetl
 
 ## 🛠️ Kullanılan Teknolojiler
 - **AI Engine:** Groq AI API & Gemini (Prompt Engineering)
+- **Pazar Araştırması ve Rakip Analizi:** Perplexity AI
 - **Geliştirme Ortamı (IDE):** Antigravity / Cursor (Agent Mode)
 - **Frontend Framework:** Lovable / React (Vite)
 - **Programlama Dili:** TypeScript
