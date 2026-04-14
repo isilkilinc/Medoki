@@ -337,7 +337,7 @@ Aşağıdaki JSON şemasına tam uygun şekilde yanıt ver. Yalnızca geçerli J
 
 Kurallar:
 - Dil: Türkçe.
-- ÖNEMLİ: correctedTerm alanını KESİNLİKLE 'Aratılan Semptom (Tıbbi Karşılığı)' formatında döndür. Örneğin: 'Baş Ağrısı (Serebralji)', 'Mide Bulantısı (Nausea)'. "intro" ve diğer açıklamalarda ise yalnızca Türkçe semptom adını kullan.
+- ÖNEMLİ: correctedTerm alanını KESİNLİKLE 'Aratılan Semptom (Semptomun Latince veya Akademik Tıbbi Karşılığı)' formatında döndür. Parantez içine ASLA bu semptoma sebep olabilecek hastalıkları (örn: Gastrit, Enfeksiyon, Migren) yazma; yalnızca şikayetin doğrudan tıbbi litaratürdeki adını (örn: 'Baş Ağrısı (Serebralji)', 'Mide Bulantısı (Nausea)', 'Ateş (Pireksi/Febris)', 'Boğaz Ağrısı (Farenjal Ağrı)') kullan. "intro" ve diğer açıklamalarda ise yalnızca Türkçe semptom adını kullan.
 - 3 ila 5 arası ürün öner.
 - Her products öğesinde activeIngredient ve brandExamples (en az 2 marka) zorunlu.
 - form alanı net olsun: "Tablet", "Jel", "Krem", "Sprey", "Şurup", "Pastil", "Bant" vb.
