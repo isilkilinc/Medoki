@@ -111,8 +111,16 @@ export interface SymptomResult {
 
 // ─── PharmacyGuard: Tıbbi Doğruluk ve Form Kontrolü ──────────────────────────
 const FORBIDDEN_FORMS_BY_SYMPTOM: Record<string, string[]> = {
-  "baş ağrısı": ["krem", "jel", "fısfıs", "sprey", "bant"],
-  "ateş": ["krem", "jel", "bant"],
+  // Sistematik Şikayetler (Sadece Tablet - Krem/Jel/Şurup Yasak)
+  "baş ağrısı": ["krem", "jel", "fısfıs", "sprey", "bant", "şurup"],
+  "ateş": ["krem", "jel", "bant", "şurup"],
+  "halsizlik": ["krem", "jel", "şurup"],
+  "regl": ["krem", "jel", "şurup"],
+  "diş": ["krem", "jel", "şurup"],
+  "kırgınlık": ["krem", "jel", "şurup"],
+  // Her senaryoda yasak (Yetişkin Odaklı)
+  "şurup": ["şurup", "likit", "süspansiyon"],
+  // Lokal Şikayetler (Daha esnek - Krem/Jel ve Tablet olabilir)
   "mide": ["jel", "krem"],
   "göz": ["tablet", "kapsül"],
 };
@@ -124,10 +132,12 @@ const BRAND_FORM_DEFAULTS: Record<string, string> = {
   "voltaren": "Tablet",
   "parol": "Tablet",
   "aprol": "Tablet",
-  "calpol": "Şurup",
-  "dolven": "Şurup",
-  "advantan": "Krem",
+  "advil": "Kapsül",
+  "nurofen": "Tablet",
+  "dolorex": "Draje",
+  "dexday": "Efervesan Tablet",
 };
+
 
 /**
  * İlaç formunu ve kullanım şeklini semptoma ve ilaca göre normalize eder.
@@ -138,12 +148,17 @@ function applyPharmacyGuard(product: SymptomProduct, symptom: string): SymptomPr
   let f = product.form || "";
   let use = product.typicalUse || "";
 
-  // 1. Semptom-Form Uyumluluğu (Örn: Baş ağrısı için krem yasak)
+  // 1. Sektörel ve Sistematik Kısıtlamalar (Yetişkin Odaklı)
+  // Şurup formunu her durumda Tablet'e veya uygun bir yetişkin formuna çek
+  if (f.toLowerCase().includes("şurup") || f.toLowerCase().includes("süspansiyon")) {
+    f = "Tablet";
+  }
+
+  // Semptom-Form Uyumluluğu
   for (const [key, forbidden] of Object.entries(FORBIDDEN_FORMS_BY_SYMPTOM)) {
     if (s.includes(key)) {
       const isHallucinated = forbidden.some(fb => f.toLowerCase().includes(fb));
       if (isHallucinated) {
-        // Eğer marka biliniyorsa onun varsayılan formuna, bilinmiyorsa Tablet'e çek
         const knownBrand = product.brandExamples.find(b => BRAND_FORM_DEFAULTS[b.toLowerCase()]);
         f = knownBrand ? BRAND_FORM_DEFAULTS[knownBrand.toLowerCase()] : "Tablet";
       }
@@ -153,8 +168,8 @@ function applyPharmacyGuard(product: SymptomProduct, symptom: string): SymptomPr
   // 2. Marka Bazlı Zorunlu Form (Örn: Majezik = Tablet)
   for (const brand in BRAND_FORM_DEFAULTS) {
     if (product.brandExamples.some(b => b.toLowerCase().includes(brand.toLowerCase()))) {
-      // Eğer semptom sistemik bir etki gerektiriyorsa varsayılan formu kullan
-      if (s.includes("baş ağrısı") || s.includes("ateş") || s.includes("regl") || s.includes("diş")) {
+      // Eğer semptom sistemik bir etki gerektiriyorsa veya pediatric marka tespit edildiyse varsayılan formu kullan
+      if (s.includes("baş ağrısı") || s.includes("ateş") || s.includes("regl") || s.includes("diş") || s.includes("halsizlik")) {
         f = BRAND_FORM_DEFAULTS[brand];
       }
     }
@@ -215,10 +230,11 @@ JSON şeması:
   "userExperiences": ["string", "string", "string"]
 }
 
-Kurallar:
+ Kurallar:
 - Dil: Türkçe.
-- İlaçların formlarını (Tablet, Krem, Şurup, Sprey, vb.) ve kullanım şekillerini piyasadaki gerçek halleriyle %100 uyumlu olacak şekilde ver. Örneğin, 'Majezik' gibi sistemik ağrı kesiciler için varsayılan formu krem değil 'Tablet' olarak ele al.
-- Semptom-Form Uyumu: Kullanıcının şikayeti ile ilacın veriliş yolu (oral, topikal vb.) tıbbi olarak mantıklı bir bütün oluşturmalıdır. Baş ağrısı için krem/jel önerme.
+- YETİŞKİN ODAKLI ANALİZ: Medoki sadece yetişkinler içindir. Tüm ilaç formlarını 'Tablet, Kapsül, Draje' gibi yetişkin formlarında ver. ASLA şurup, likit veya süspansiyon gibi pediatrik formlar önerme. Calpol/Dolven gibi çocuk markaları yerine Parol/Advil/Arveles gibi yetişkin muadillerini öner.
+- İlaçların formlarını ve kullanım şekillerini piyasadaki gerçek halleriyle %100 uyumlu olacak şekilde ver. Örneğin, 'Majezik' gibi sistemik ağrı kesiciler için varsayılan formu krem değil 'Tablet' olarak ele al.
+- Semptom-Form Uyumu: Kullanıcının şikayeti ile ilacın veriliş yolu (oral, topikal vb.) tıbbi olarak mantıklı bir bütün oluşturmalıdır. Baş ağrısı, ateş ve halsizlik için KESİNLİKLE krem/jel önerme. Oral (Tablet) formuna zorla.
 - ÖNEMLİ: correctedTerm alanında ilaç adının (ticari marka) EN YANINA parantez içinde ilacın ETKEN MADDESİNİ EKLE (örn: 'Majezik (Flurbiprofen)', 'Parol (Parasetamol)', 'Aferin (Parasetamol & Klorfeniramin)', 'Arveles (Deksketoprofen)'). Eğer vitaminse vb. 'D Vitamini (Kolekalsiferol)' şeklinde göster. Sadece ticari ad yazma, parantez içinde etken madde olması ZORUNLUDUR!
 - Kullanıcının girdiği metindeki bariz yazım hatalarını veya argoları otomatik olarak doğru tıbbi terime çevir.
 - Summary ve diğer açıklamalarda marka adını kullanarak kullanıcı dostu yaz; teknik detaylar parantez içinde veya notlarda yer alabilir.
@@ -396,12 +412,14 @@ Aşağıdaki JSON şemasına tam uygun şekilde yanıt ver. Yalnızca geçerli J
 
 Kurallar:
 - Dil: Türkçe.
-- Kullanıcının şikayeti ile ilacın veriliş yolu (oral, topikal, sprey vb.) tıbbi olarak mantıklı bir bütün oluşturmalıdır. Baş ağrısı için KESİNLİKLE krem/jel önerme (mümkünse tablet öner). Kas/eklem ağrılarında krem/jel öncelikli olabilir.
+- YETİŞKİN ODAKLI ÖNERİ: Medoki sadece yetişkinler içindir. Tüm önerileri yetişkinlere özel Tablet/Kapsül dozajlarında ver. ASLA şurup veya pediatrik formlar önerme.
+- Kullanıcının şikayeti ile ilacın veriliş yolu (oral, topikal, sprey vb.) tıbbi olarak mantıklı bir bütün oluşturmalıdır. Baş ağrısı, ateş ve halsizlik gibi sistematik durumlarda KESİNLİKLE krem/jel/şurup önerme. Sadece oral Tablet/Kapsül öner.
+- Lokal Şikayetler: Sadece kas ağrısı, burkulma ve eklem ağrısı gibi lokal durumlarda krem/jel önerisine izin verilir.
 - ÖNEMLİ: correctedTerm alanını KESİNLİKLE 'Aratılan Semptom (Semptomun Latince veya Akademik Tıbbi Karşılığı)' formatında döndür. Parantez içine ASLA bu semptoma sebep olabilecek hastalıkları (örn: Gastrit, Enfeksiyon, Migren) yazma; yalnızca şikayetin doğrudan tıbbi litaratürdeki adını (örn: 'Baş Ağrısı (Serebralji)', 'Mide Bulantısı (Nausea)', 'Ateş (Pireksi/Febris)', 'Boğaz Ağrısı (Farenjal Ağrı)') kullan. "intro" ve diğer açıklamalarda ise yalnızca Türkçe semptom adını kullan.
 - 3 ila 5 arası ürün öner.
 - Her products öğesinde activeIngredient ve brandExamples (en az 2 marka) zorunlu.
 - form alanı son derece net olsun ve önerilen ilaçların piyasadaki gerçek satış formlarıyla (örn: Majezik = Tablet) birebir eşleşmesini sağla. Hap/tablet olan bir ilaca uydurma şekilde 'Krem' veya 'Jel' yazmaktan KESİNLİKLE kaçın.
-- typicalUse metni doğal olsun: Tablet ise "günde x tablet", krem ise "ince bir tabaka halinde" gibi gerçekçi ifadeler kullan.
+- typicalUse metni doğal olsun: Yetişkin dozajlarını baz alarak "günde x tablet" gibi gerçekçi ifadeler kullan.
 - Hamilelik, kronik hastalık, çocuk, alerji gibi durumlarda mutlaka eczacı/doktor uyarısı yaz.
 - userExperiences: Bu semptom veya önerilen OTC ürünlerle ilgili internetteki kullanıcı yorumlarında geçen yaygın temaları 3 kısa maddeyle özetle.`.trim();
 
