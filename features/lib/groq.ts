@@ -172,31 +172,22 @@ export async function validateSymptom(userText: string): Promise<SymptomValidati
   if (cached) return cached;
   // ─────────────────────────────────────────────────────────────────────────────
 
-  const prompt = `Sen Türk tıp terminolojisine ve eczacılığına hakim bir uzmansın.
+  const prompt = `Sen katı bir tıbbi doğrulama hakemisin (AI Hakemliği).
 Kullanıcı şikayetini/semptomunu şöyle girdi: "${userText}"
 
-Aşağıdaki JSON şemasına SADECE geçerli JSON döndür. Markdown, code block, ek açıklama kullanma:
+EN ÖNEMLİ SORU: 'Bu girdi gerçek bir insan diliyle yazılmış, anlamlı bir sağlık şikayeti mi?'
+
+Zero-Tolerance Policy (Sıfır Tolerans Kuralı):
+1. Eğer yukarıdaki soruya cevabın %100 'Evet' değilse, DİREKT olarak 'error' aşamasını seç ve analizi reddet.
+2. ZORLAMA EŞLEŞTİRMEYİ YASAKLA: Eğer girdi "dsfgsdg", "asdf" gibi anlamsız sembol/harf yığınlarıysa "belki şunu demek istemiştir" diyerek YAKIN TAHMİN YAPMA. Gerçek dışı kelimelerde hiçbir analiz üretme, acımasızca reddet.
+3. LABORATUVAR verilerini (örn: "TSH", "WBC", "Hemoglobin", "B12 seviyesi") semptom analiziyle KARIŞTIRMA; bunlar şikayet değildir, direkt reddet.
+4. Yalnızca girdi tamamen geçerli bir Türkçe tıbbi semptom veya ÇOK bariz küçük bir harf hatasına sahip anlamlı bir insani ifadeyse "valid" seç. (Örn: "baş ağrsı" -> "Baş Ağrısı" geçerlidir, "bqz ağrısı" -> REDDET).
+
+Aşağıdaki JSON şemasına SADECE geçerli JSON döndür. Başka hiçbir şey yazma:
 {
   "stage": "valid" | "error",
-  "correctedTerm": "string veya null"
+  "correctedTerm": "Geçerliyse Tıbbi Literatürdeki Adı (Başlık Büyük Harf), değilse null"
 }
-
-Kurallar — SADECE BİRİ UYGULANIR:
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. AŞAMA: valid  ← EN KATLI KURAL.
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   - Girdi zaten doğruysa, veya YALNIZCA kesin ve tek bir olasılığı olan basit bir harf hatası barındırıyorsa (örn: "baş ağrsı" -> "Baş Ağrısı"). 
-   - stage: "valid", correctedTerm: profesyonel tıbbi terim (Başlık Büyük Harf).
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-2. AŞAMA: error ← DİĞER TÜM DURUMLAR BUNA GİRER.
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   - Girdi tamamen anlamsız, rastgele karakter dizisi ("dsfgsdg", "asdfg", "xjqpw" vb.) ise.
-   - Girdi uydurma kelime tiplemeleri içeriyorsa.
-   - Girdi LABORATUVAR veya KAN DEĞERİ ise (örn: "TSH", "WBC", "Hemoglobin", "B12 seviyesi", "Kolesterol"). Laboratuvar sonuçları kesinlikle 'semptom' değildir, DİREKT error dön.
-   - Girdi birden fazla yazım hatası barındırıyorsa, okuması zorsa, klavye kayması çok fazlaysa (örn: "bqz ağrısı", "mğde agrıs") veya hangi kelimeyi kastettiğinden %100 emin değilsen. (Bunu mu demek istediniz ÖNERİSİ YAPMA YASAKTIR, DİREKT error DÖN).
-   - stage: "error", correctedTerm: null.
 `;
 
   try {
