@@ -27,8 +27,6 @@ const Index = () => {
   const [query, setQuery] = useState("");
   const [result, setResult] = useState<MedicineResult | SymptomResult | null>(null);
   const [error, setError] = useState<ReactNode | null>(null);
-  // Semptom Aşama-2 önerisi: kullanıcıya tıklanabilir "Bunu mu demek istediniz?" gösterir
-  const [symptomSuggestion, setSymptomSuggestion] = useState<{ original: string; corrected: string } | null>(null);
   const [forceSearchInput, setForceSearchInput] = useState<string | null>(null);
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
@@ -69,7 +67,6 @@ const Index = () => {
     setQuery(text);
     setResult(null);
     setError(null);
-    setSymptomSuggestion(null);
     setIsLoading(true);
     setScreen("results");
 
@@ -150,18 +147,10 @@ const Index = () => {
         // ── SEMPTOM MODU: 3 AŞAMALI DOĞRULAMA ──
         const symptomVal = await validateSymptom(text);
 
-        if (symptomVal.stage === "error") {
-          // Aşama 3: Tamamen anlamsız — sadece hata göster, analiz başlatma
-          setError("Girdiğiniz semptom anlaşılamadı. Lütfen bilinen bir şikayet veya semptom adı yazınız.");
+        if (symptomVal.stage === "error" || symptomVal.stage === "suggestion") {
+          // Öneri istemiyoruz, anlamsız/hatalı tüm girişlerde işlemi iptal et
+          setError("İşlem tamamlanamadı. Lütfen geçerli bir semptom veya şikayet girdiğinizden emin olun.");
           setIsLoading(false);
-          return;
-        }
-
-        if (symptomVal.stage === "suggestion" && symptomVal.suggestion) {
-          // Aşama 2: Kısmi hata — analiz başlatma, öneri göster
-          setIsLoading(false);
-          setScreen("home"); // Sonuç ekranına geçme, home'da kal
-          setSymptomSuggestion({ original: text, corrected: symptomVal.suggestion });
           return;
         }
 
@@ -210,27 +199,8 @@ const Index = () => {
         {activeTab === "home" && (
           screen === "home" ? (
             <>
-              {/* Semptom Aşaması-2: analiz başlatılmadan öneri göster */}
-              {symptomSuggestion && (
-                <div className="mb-4 px-4 py-3 rounded-2xl border border-primary/30 bg-primary/10 text-sm animate-fade-in-up">
-                  <span className="text-muted-foreground">Bunu mu demek istediniz:{" "}</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const corrected = symptomSuggestion.corrected;
-                      setSymptomSuggestion(null);
-                      setForceSearchInput(corrected);
-                    }}
-                    className="font-bold text-primary underline underline-offset-2 cursor-pointer hover:text-emerald-400 transition-colors"
-                  >
-                    {symptomSuggestion.corrected}
-                  </button>
-                  ?
-                </div>
-              )}
               <HomeScreen 
                 onAnalyze={(text, mode) => { 
-                  setSymptomSuggestion(null); 
                   setForceSearchInput(null);
                   handleAnalyze(text, mode); 
                 }} 

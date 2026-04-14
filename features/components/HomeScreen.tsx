@@ -44,7 +44,7 @@ const HomeScreen = ({ onAnalyze, isLoading, forceInputText }: HomeScreenProps) =
 
   useEffect(() => {
     const trimmed = input.trim();
-    if (trimmed.length < 3 || isLoading) {
+    if (trimmed.length < 3 || isLoading || mode === "symptom") {
       setSuggestion(null);
       return;
     }
