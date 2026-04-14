@@ -350,6 +350,7 @@ Yalnızca geçerli JSON döndür. Eğer kelimede bariz bir harf/yazım hatası v
 1. SÖZLÜK KONTROLÜ: Öneri yaparken sadece GERÇEK (piyasada var olan veya tıbben anlamlı) kelimeleri referans al. Kullanıcının girdiği saçma veya uydurma bir kelimeyi (örn: 'göpüs') asla 'göpüs' diye önerme.
 2. EŞİK DEĞERİ: Girdi, önereceğin kelimeyle %80-90 oranında kelime, klavye ve görünüm olarak uyuşmuyorsa (veya önerilen kelimedeki asıl kök harflerle ilgisi yoksa) O ÖNERİYİ ELE (null dön).
 3. EĞER GİRDİ ZATEN DOĞRU YAZILMIŞ BİR İLAÇ İSE (örn: "Majezik", "Parol", "Aferin"): Asla hata uydurma, asla benzer isimli başka bir ilaç önerme! Direkt "suggestion": null olarak dön!
+4. TİCARİ MARKA - ETKEN MADDE İLİŞKİSİ YASAKTIR: Kullanıcı ticari bir marka adı yazdıysa (örn: Majezik), sakın etken maddesini (Flurbiprofen) bir düzeltme olarak önerme. Tam tersi de geçerli. Parantez veya ek bilgi açma, sadece "suggestion": null dön. Düzeltme (suggestion) SADECE bariz harf hatalarında geçerlidir (örn: "mazjezik" -> "Majezik").
 JSON şeması:
 {
   "suggestion": "düzeltilmiş kelime veya null"
@@ -411,9 +412,10 @@ isValid:
   - inputType "symptom" veya "invalid" → isValid: false.
 
 isTypo:
-  - Sadece inputType "medicine" olan bir girdide yazım hatası varsa true.
-  - ÖNERİ SAĞLAMASI: Suggestion alanına yazdığın kelime KESİNLİKLE gerçek bir ilaç/terim olmalı. Eşik Değeri (%80 uyuşma) yakalanmıyorsa ve uydurma ("göpüs" gibi) bir kelime ise isTypo: false, inputType: invalid olarak dön.
-  - "Macezik" → "Majezik", "Parool" → "Parol" gibi.
+  - Sadece inputType "medicine" olan bir girdide HARF/YAZIM hatası varsa true.
+  - ÖNERİ SAĞLAMASI: Suggestion alanına yazdığın kelime KESİNLİKLE gerçek bir ilaç/terim olmalı.
+  - KESİN KURAL: Marka adını etken maddeyle (veya tam tersi) GÜNCELLEMEYE ÇALIŞMA! Eğer kullanıcı "Majezik" girdiyse, suggestion olarak "Flurbiprofen" YAZMA. Eğer kullanıcı "Flurbiprofen" girdiyse "Majezik" YAZMA. Bunlar yazım hatası değildir, isTypo: false ve suggestion: null olarak dön. 
+  - Yalnızca "Macezik" → "Majezik" veya "Parool" → "Parol" gibi BARİZ HARF HATALARINDA isTypo: true ve suggestion: düzeltilmiş_hali dön.
   - isSymptom: true ise isTypo kesinlikle false olmalı.
 
 suggestion:
@@ -422,6 +424,7 @@ suggestion:
 
 ━━━ Örnekler ━━━
   "Majezik"      → inputType:"medicine", isValid:true,  isTypo:false, isSymptom:false, suggestion:null
+  "Flurbiprofen" → inputType:"medicine", isValid:true,  isTypo:false, isSymptom:false, suggestion:null
   "Parol"        → inputType:"medicine", isValid:true,  isTypo:false, isSymptom:false, suggestion:null
   "Aferin"       → inputType:"medicine", isValid:true,  isTypo:false, isSymptom:false, suggestion:null
   "aferi"        → inputType:"medicine", isValid:false, isTypo:true,  isSymptom:false, suggestion:"Aferin"
