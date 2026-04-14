@@ -146,6 +146,7 @@ JSON şeması:
 
 Kurallar:
 - Dil: Türkçe.
+- İlaçların formlarını (Tablet, Krem, Şurup, Sprey, vb.) ve kullanım şekillerini piyasadaki gerçek halleriyle %100 uyumlu olacak şekilde ver. Örneğin, 'Majezik' gibi sistemik ağrı kesiciler için varsayılan formu krem değil 'Tablet' olarak ele al ve kullanım dozunu buna göre (ağızdan) öner.
 - ÖNEMLİ: correctedTerm alanında ilaç adının (ticari marka) EN YANINA parantez içinde ilacın ETKEN MADDESİNİ EKLE (örn: 'Majezik (Flurbiprofen)', 'Parol (Parasetamol)', 'Aferin (Parasetamol & Klorfeniramin)', 'Arveles (Deksketoprofen)'). Eğer vitaminse vb. 'D Vitamini (Kolekalsiferol)' şeklinde göster. Sadece ticari ad yazma, parantez içinde etken madde olması ZORUNLUDUR!
 - Kullanıcının girdiği metindeki bariz yazım hatalarını veya argoları otomatik olarak doğru tıbbi terime çevir.
 - Summary ve diğer açıklamalarda marka adını kullanarak kullanıcı dostu yaz; teknik detaylar parantez içinde veya notlarda yer alabilir.
