@@ -177,71 +177,39 @@ Kullanıcı şikayetini/semptomunu şöyle girdi: "${userText}"
 
 Aşağıdaki JSON şemasına SADECE geçerli JSON döndür. Markdown, code block, ek açıklama kullanma:
 {
-  "stage": "auto_correct" | "suggestion" | "error",
-  "correctedTerm": "string veya null",
-  "suggestion": "string veya null"
+  "stage": "valid" | "error",
+  "correctedTerm": "string veya null"
 }
 
 Kurallar — SADECE BİRİ UYGULANIR:
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. AŞAMA: auto_correct  ← EN KATLI KURAL. Şüphen varsa KULLANMA.
+1. AŞAMA: valid  ← EN KATLI KURAL.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Kullanılma koşulları — TÜMÜ aynı anda sağlanmalı:
-     a) Yanlış yazılan sözcük Türkçe tıp literatüründe TEK bir terimle eşleşiyor (başka hiçbir yoruma kapı bırakmıyor).
-     b) Hata YALNIZCA tek bir sözcüğün içinde, tek bir eksik sesli harften (ı, i, u, ü, a, e, o, ö) ibaret.
-     c) %100 eminsin — en küçük belirsizlik varsa bu aşamayı kullanma.
-
-   ✅ KABUL (sadece bu kalıplar auto_correct olabilir):
-     "baş ağrsı"    → "Baş Ağrısı"   ('ı' eksik, tek hece, tek ihtimal)
-     "öksrük"       → "Öksürük"       ('ü' eksik, tek ihtimal)
-     "boyun ağrsi"  → "Boyun Ağrısı"  ('ı' eksik, tek ihtimal)
-     "mide ağrsi"   → "Mide Ağrısı"   ('ı' eksik, tek ihtimal)
-     "ates"         → "Ateş"           ('ş' harfi eksik, tek ihtimal)
-
-   ❌ YASAK — Bu tür girdiler KESİNLİKLE auto_correct OLAMAZ (suggestion olmalı):
-     "baz ağrısı"   → baş / baz / bel / boyun hangisi? Kesin değil  → suggestion
-     "bqz ağrısı"   → klavye kayması, baş mı bel mi baz mı belirsiz → suggestion
-     "bş ağrısı"    → baş mı boş mu belirsiz                        → suggestion
-     "krin ağrısı"  → karın mı karin mı belirsiz                    → suggestion
-     "mğde agrıs"   → birden fazla hata var                         → suggestion
-
-   stage: "auto_correct", correctedTerm: düzeltilmiş profesyonel terim (Başlık Büyük Harf), suggestion: null.
+   - Girdi zaten doğruysa, veya YALNIZCA kesin ve tek bir olasılığı olan basit bir harf hatası barındırıyorsa (örn: "baş ağrsı" -> "Baş Ağrısı"). 
+   - stage: "valid", correctedTerm: profesyonel tıbbi terim (Başlık Büyük Harf).
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-2. AŞAMA: suggestion
+2. AŞAMA: error ← DİĞER TÜM DURUMLAR BUNA GİRER.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   - Girdi tıbbi bir terime benziyor ama %100 emin olamazsın ya da birden fazla olası yorum var.
-   - EŞİK DEĞERİ (%80-90) & SÖZLÜK: Öneri yaparken SADECE Türkçe tıp literatüründe/sözlükte anlamı olan (örn: Göğüs, Baş, Bel) GERÇEK kelimeleri referans al.
-   - SAÇMA ÖNERİYİ GİZLE: Kullanıcı örneğin 'göpüs' yazdığında sakın 'göpüs' diye sahte bir kelime türetme ve önerme. Hedef kelime ile kullanıcı kelimesi en az %80 eşleşmeli. (Yanlış harf hedefin mantığına veya klavye kaymasına çok ters ise "suggestion" olarak uydurma üretme, direkt 3. AŞAMA'ya at).
-   - Örnekler: "baz ağrısı" → "Baş Ağrısı", "mğde agrıs" → "Mide Ağrısı", "baç dömsei" → "Baş Dönmesi".
-   - stage: "suggestion", correctedTerm: null, suggestion: en makul tıbbi terim tahmini.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-3. AŞAMA: error
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   - Girdi tamamen anlamsız, rastgele karakter dizisi veya hiçbir Türkçe tıbbi terimle ilişkilendirilemez.
-   - Örnekler: "vzka skaa", "asdfg", "xjqpw".
-   - stage: "error", correctedTerm: null, suggestion: null.
-
-EK KURAL: Girdi zaten doğru ve eksiksiz yazılmışsa (örn. "Baş Ağrısı", "mide bulantısı", "ateş") stage: "auto_correct" ve correctedTerm başlık büyük harf formatında döndür.
+   - Girdi tamamen anlamsız, rastgele karakter dizisi ("dsfgsdg", "asdfg", "xjqpw" vb.) ise.
+   - Girdi uydurma kelime tiplemeleri içeriyorsa.
+   - Girdi birden fazla yazım hatası barındırıyorsa, okuması zorsa, klavye kayması çok fazlaysa (örn: "bqz ağrısı", "mğde agrıs") veya hangi kelimeyi kastettiğinden %100 emin değilsen. (Bunu mu demek istediniz ÖNERİSİ YAPMA YASAKTIR, DİREKT error DÖN).
+   - stage: "error", correctedTerm: null.
 `;
 
   try {
     const parsed = await groqJsonCompletion(prompt, 120);
-    const stage: SymptomValidationStage = ["auto_correct", "suggestion", "error"].includes(parsed.stage)
-      ? parsed.stage
-      : "error";
+    const stage: SymptomValidationStage = parsed.stage === "valid" ? "auto_correct" : "error";
     const result: SymptomValidation = {
       stage,
       correctedTerm: parsed.correctedTerm || undefined,
-      suggestion: parsed.suggestion || undefined,
     };
     void setCachedAnalysis(cacheKey, result);
     return result;
   } catch {
-    // Fail-open: doğru girdi sayılsın
-    return { stage: "auto_correct", correctedTerm: userText };
+    // Fail-closed! Hatayı gizleme, analiz yapmasına izin verme, anlamsız girişleri reddet.
+    return { stage: "error" };
   }
 }
 // ──────────────────────────────────────────────────────────────────────────────
