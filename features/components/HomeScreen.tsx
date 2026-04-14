@@ -8,9 +8,10 @@ type Mode = "medicine" | "symptom";
 interface HomeScreenProps {
   onAnalyze: (text: string, mode: Mode) => void;
   isLoading: boolean;
+  forceInputText?: string | null;
 }
 
-const HomeScreen = ({ onAnalyze, isLoading }: HomeScreenProps) => {
+const HomeScreen = ({ onAnalyze, isLoading, forceInputText }: HomeScreenProps) => {
   const [mode, setMode] = useState<Mode>("medicine");
   const [input, setInput] = useState("");
   const [suggestion, setSuggestion] = useState<string | null>(null);
@@ -32,8 +33,14 @@ const HomeScreen = ({ onAnalyze, isLoading }: HomeScreenProps) => {
     if (!suggestion) return;
     setInput(suggestion);
     setSuggestion(null);
-    onAnalyze(suggestion, mode);
+    // Submit butonuna basılana kadar bekle, otomatik analiz ETME.
   };
+
+  useEffect(() => {
+    if (forceInputText) {
+      setInput(forceInputText);
+    }
+  }, [forceInputText]);
 
   useEffect(() => {
     const trimmed = input.trim();

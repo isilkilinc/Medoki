@@ -29,7 +29,7 @@ const Index = () => {
   const [error, setError] = useState<ReactNode | null>(null);
   // Semptom Aşama-2 önerisi: kullanıcıya tıklanabilir "Bunu mu demek istediniz?" gösterir
   const [symptomSuggestion, setSymptomSuggestion] = useState<{ original: string; corrected: string } | null>(null);
-
+  const [forceSearchInput, setForceSearchInput] = useState<string | null>(null);
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("medoki_recent_searches_v2");
@@ -125,7 +125,8 @@ const Index = () => {
                     type="button"
                     onClick={() => {
                       setActiveTab("home");
-                      handleAnalyze(validation.suggestion!, "medicine");
+                      setForceSearchInput(validation.suggestion!);
+                      setError(null);
                     }}
                     className="font-bold underline cursor-pointer hover:text-emerald-400 transition-colors"
                   >
@@ -218,7 +219,7 @@ const Index = () => {
                     onClick={() => {
                       const corrected = symptomSuggestion.corrected;
                       setSymptomSuggestion(null);
-                      handleAnalyze(corrected, "symptom");
+                      setForceSearchInput(corrected);
                     }}
                     className="font-bold text-primary underline underline-offset-2 cursor-pointer hover:text-emerald-400 transition-colors"
                   >
@@ -227,7 +228,15 @@ const Index = () => {
                   ?
                 </div>
               )}
-              <HomeScreen onAnalyze={(text, mode) => { setSymptomSuggestion(null); handleAnalyze(text, mode); }} isLoading={isLoading} />
+              <HomeScreen 
+                onAnalyze={(text, mode) => { 
+                  setSymptomSuggestion(null); 
+                  setForceSearchInput(null);
+                  handleAnalyze(text, mode); 
+                }} 
+                isLoading={isLoading} 
+                forceInputText={forceSearchInput}
+              />
             </>
           ) : (
             <ResultsScreen
