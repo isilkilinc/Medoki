@@ -124,7 +124,7 @@ JSON şeması:
 
 Kurallar:
 - Dil: Türkçe.
-- ÖNEMLİ: correctedTerm alanına YALNIZCA ilacın marka veya ticari adını yaz (örn: 'Calpol', 'Arveles', 'Parol'). İlaç etken maddelerini başlığa (correctedTerm) ASLA ekleme. Etken maddeleri ve içerik detaylarını sadece 'summary' (açıklama) alanında, metin içine yedirerek belirt.
+- ÖNEMLİ: correctedTerm alanında ilaç adının (ticari marka) EN YANINA parantez içinde ilacın ETKEN MADDESİNİ EKLE (örn: 'Majezik (Flurbiprofen)', 'Parol (Parasetamol)', 'Aferin (Parasetamol & Klorfeniramin)', 'Arveles (Deksketoprofen)'). Eğer vitaminse vb. 'D Vitamini (Kolekalsiferol)' şeklinde göster. Sadece ticari ad yazma, parantez içinde etken madde olması ZORUNLUDUR!
 - Kullanıcının girdiği metindeki bariz yazım hatalarını veya argoları otomatik olarak doğru tıbbi terime çevir.
 - Summary ve diğer açıklamalarda marka adını kullanarak kullanıcı dostu yaz; teknik detaylar parantez içinde veya notlarda yer alabilir.
 - Bilimsel doğruluk öncelikli, ama sade ve anlaşılır yaz. İlaç pediatrik ise (örn. Calpol, Dolven, Ibufen), summary alanına mutlaka net bir hatırlatma ekle: 'Pediatrik dozlar çocuğun kilosuna göre doktor tarafından belirlenmelidir.'
@@ -349,7 +349,7 @@ Yalnızca geçerli JSON döndür. Eğer kelimede bariz bir harf/yazım hatası v
 ÖNEMLİ KURALLAR:
 1. SÖZLÜK KONTROLÜ: Öneri yaparken sadece GERÇEK (piyasada var olan veya tıbben anlamlı) kelimeleri referans al. Kullanıcının girdiği saçma veya uydurma bir kelimeyi (örn: 'göpüs') asla 'göpüs' diye önerme.
 2. EŞİK DEĞERİ: Girdi, önereceğin kelimeyle %80-90 oranında kelime, klavye ve görünüm olarak uyuşmuyorsa (veya önerilen kelimedeki asıl kök harflerle ilgisi yoksa) O ÖNERİYİ ELE (null dön).
-3. Doğru ilaç adı yazıldıysa asla başka ilaç önerme, null dön.
+3. EĞER GİRDİ ZATEN DOĞRU YAZILMIŞ BİR İLAÇ İSE (örn: "Majezik", "Parol", "Aferin"): Asla hata uydurma, asla benzer isimli başka bir ilaç önerme! Direkt "suggestion": null olarak dön!
 JSON şeması:
 {
   "suggestion": "düzeltilmiş kelime veya null"
@@ -422,6 +422,9 @@ suggestion:
 
 ━━━ Örnekler ━━━
   "Majezik"      → inputType:"medicine", isValid:true,  isTypo:false, isSymptom:false, suggestion:null
+  "Parol"        → inputType:"medicine", isValid:true,  isTypo:false, isSymptom:false, suggestion:null
+  "Aferin"       → inputType:"medicine", isValid:true,  isTypo:false, isSymptom:false, suggestion:null
+  "aferi"        → inputType:"medicine", isValid:false, isTypo:true,  isSymptom:false, suggestion:"Aferin"
   "Macezik"      → inputType:"medicine", isValid:false, isTypo:true,  isSymptom:false, suggestion:"Majezik"
   "baş ağrısı"   → inputType:"symptom",  isValid:false, isTypo:false, isSymptom:true,  suggestion:null
   "mide bulantısı" → inputType:"symptom",isValid:false, isTypo:false, isSymptom:true,  suggestion:null
