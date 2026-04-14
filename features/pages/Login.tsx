@@ -81,7 +81,7 @@ export default function Login() {
           <img 
             src="/logo.png" 
             alt="Medoki Logo" 
-            className="w-auto h-[160px] object-contain relative z-10 drop-shadow-[0_0_12px_rgba(52,211,153,0.6)] -mb-2" 
+            className="w-auto h-[144px] object-contain relative z-10 drop-shadow-[0_0_12px_rgba(52,211,153,0.6)] -mb-2" 
           />
           <div className="text-center flex flex-col items-center">
             <h1 className="text-3xl font-bold tracking-tight text-foreground">Medoki</h1>
