@@ -235,7 +235,7 @@ export default function SettingsScreen() {
   // ─── RENDER ────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col gap-5 pb-12 animate-fade-in-up w-full">
-      <h2 className="text-xl font-bold text-center text-foreground">{t("settings.management")}</h2>
+      <h2 className="text-xl font-bold text-center text-foreground">{t("settings.title")}</h2>
 
       {/* ── KART 0: Tercihler (mevcut tema + dil) ── */}
       <AccordionItem
