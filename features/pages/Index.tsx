@@ -91,14 +91,6 @@ const Index = () => {
   };
 
   const handleAnalyze = async (text: string, selectedMode: Mode) => {
-    if (!user) {
-      const tries = parseInt(localStorage.getItem("medoki_guest_tries") || "0");
-      if (tries >= 2) {
-         navigate("/login");
-         return;
-      }
-      localStorage.setItem("medoki_guest_tries", (tries + 1).toString());
-    }
 
     setError(null);
     setResult(null);
@@ -244,7 +236,7 @@ const Index = () => {
                 className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/40 text-xs font-semibold text-foreground shadow-sm border border-border/50 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all"
               >
                 <LogOut className="w-3.5 h-3.5" />
-                Çıkış
+                {t("profile.logout")}
               </button>
            ) : (
              <button
@@ -252,7 +244,7 @@ const Index = () => {
                 onClick={() => navigate("/login")}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-primary text-white shadow-md shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95"
               >
-                Giriş Yap
+                {t("profile.login")}
                 <LogIn className="w-3.5 h-3.5" />
               </button>
            )}

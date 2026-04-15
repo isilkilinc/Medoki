@@ -66,11 +66,11 @@ const HomeScreen = ({ onAnalyze, isLoading, forceInputText }: HomeScreenProps) =
     <section className="glass-card">
       <h1 className="font-bold mb-4 text-foreground text-lg">{t("home.title")}</h1>
 
-      <div className="flex gap-3 flex-wrap mb-4">
+      <div className="flex gap-2 flex-nowrap mb-4">
         <button
           type="button"
           onClick={() => setMode("medicine")}
-          className={`flex items-center gap-2 rounded-2xl px-4 py-3 min-h-[48px] font-semibold border cursor-pointer transition-all text-sm
+          className={`flex-1 flex items-center justify-center gap-1.5 rounded-2xl px-1 sm:px-4 py-3 min-h-[48px] font-semibold border cursor-pointer transition-all text-[13px] sm:text-sm whitespace-nowrap overflow-hidden text-ellipsis
             ${mode === "medicine"
               ? "bg-[hsla(217,80%,55%,0.15)] dark:bg-secondary/20 border-[hsla(217,80%,55%,0.4)] dark:border-secondary/40 text-foreground shadow-[0_0_12px_rgba(0,220,200,0.1)]"
               : "bg-muted/40 border-border text-muted-foreground hover:bg-secondary/10 hover:border-secondary/30"}`}
@@ -81,7 +81,7 @@ const HomeScreen = ({ onAnalyze, isLoading, forceInputText }: HomeScreenProps) =
         <button
           type="button"
           onClick={() => setMode("symptom")}
-          className={`flex items-center gap-2 rounded-2xl px-4 py-3 min-h-[48px] font-semibold border cursor-pointer transition-all text-sm
+          className={`flex-1 flex items-center justify-center gap-1.5 rounded-2xl px-1 sm:px-4 py-3 min-h-[48px] font-semibold border cursor-pointer transition-all text-[13px] sm:text-sm whitespace-nowrap overflow-hidden text-ellipsis
             ${mode === "symptom"
               ? "bg-primary/15 border-primary/35 text-foreground shadow-[0_0_12px_rgba(0,220,200,0.1)]"
               : "bg-muted/40 border-border text-muted-foreground hover:bg-primary/10 hover:border-primary/25"}`}

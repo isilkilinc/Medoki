@@ -12,10 +12,10 @@ interface BottomNavProps {
 const BottomNav = ({ activeTab, onChangeTab, onScanClick }: BottomNavProps) => {
   const { t } = useLanguage();
   return (
-  <nav className="bottom-nav" aria-label="Ana navigasyon">
+  <nav className="bottom-nav" aria-label="Navigation">
     <button 
       className={`bottom-nav-item ${activeTab === 'home' ? 'active' : ''}`} 
-      aria-label="Ana sayfa"
+      aria-label={t("nav.home")}
       onClick={() => onChangeTab('home')}
     >
       <Home className="w-5 h-5" />
@@ -23,7 +23,7 @@ const BottomNav = ({ activeTab, onChangeTab, onScanClick }: BottomNavProps) => {
     </button>
     <button 
       className={`bottom-nav-item ${activeTab === 'search' ? 'active' : ''}`} 
-      aria-label="Arama"
+      aria-label={t("nav.search")}
       onClick={() => onChangeTab('search')}
     >
       <Search className="w-5 h-5" />
@@ -38,7 +38,7 @@ const BottomNav = ({ activeTab, onChangeTab, onScanClick }: BottomNavProps) => {
     </button>
     <button 
       className={`bottom-nav-item ${activeTab === 'profile' ? 'active' : ''}`} 
-      aria-label="Profil"
+      aria-label={t("nav.profile")}
       onClick={() => onChangeTab('profile')}
     >
       <User className="w-5 h-5" />
@@ -46,7 +46,7 @@ const BottomNav = ({ activeTab, onChangeTab, onScanClick }: BottomNavProps) => {
     </button>
     <button 
       className={`bottom-nav-item ${activeTab === 'settings' ? 'active' : ''}`} 
-      aria-label="Ayarlar"
+      aria-label={t("nav.settings")}
       onClick={() => onChangeTab('settings')}
     >
       <Settings className="w-5 h-5" />

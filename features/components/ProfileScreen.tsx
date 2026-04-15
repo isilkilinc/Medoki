@@ -1,72 +1,244 @@
-import { useState } from "react";
-import { User, LogIn, Mail, Lock } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  User, LogOut, Save, Loader2, ChevronDown,
+  Heart, AlertTriangle, Activity, LogIn
+} from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { useLanguage } from "@/lib/i18n";
 
+// ─── Tipler ──────────────────────────────────────────────────────────────────
+interface HealthProfile {
+  blood_type: string;
+  allergies: string;
+  chronic_conditions: string;
+}
+
+const BLOOD_TYPES = ["Bilinmiyor", "A+", "A-", "B+", "B-", "AB+", "AB-", "0+", "0-"];
+
+const INPUT_CLASS =
+  "w-full px-4 py-3 rounded-xl bg-muted/30 border border-border text-sm text-foreground " +
+  "placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 " +
+  "focus:border-primary/60 transition-all duration-200 resize-none";
+
+// ─── Avatar (Baş harf) ───────────────────────────────────────────────────────
+function Avatar({ letter }: { letter: string }) {
+  return (
+    <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 border-2 border-primary/40 shadow-[0_0_24px_rgba(52,211,153,0.25)] flex items-center justify-center flex-shrink-0">
+      <span className="text-3xl font-bold text-primary">{letter}</span>
+      <span className="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-primary border-2 border-background flex items-center justify-center">
+        <span className="w-2 h-2 rounded-full bg-white" />
+      </span>
+    </div>
+  );
+}
+
+// ─── Bölüm Başlığı ───────────────────────────────────────────────────────────
+function SectionTitle({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <div className="flex items-center gap-2 mb-3">
+      <span className="text-primary">{icon}</span>
+      <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{label}</span>
+    </div>
+  );
+}
+
+// ─── Ana Bileşen ─────────────────────────────────────────────────────────────
 export default function ProfileScreen() {
-  const [isLogged, setIsLogged] = useState(false);
+  const { user, signOut, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const { t } = useLanguage();
 
-  if (isLogged) {
+  const [profile, setProfile] = useState<HealthProfile>({
+    blood_type: "Bilinmiyor",
+    allergies: "",
+    chronic_conditions: "",
+  });
+  const [isFetching, setIsFetching] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // ── Profil yükle ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!user) return;
+    setIsFetching(true);
+    supabase
+      .from("profiles")
+      .select("blood_type, allergies, chronic_conditions")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error) {
+          console.warn("[Profile] Yüklenemedi:", error.message);
+        } else if (data) {
+          setProfile({
+            blood_type: data.blood_type || "Bilinmiyor",
+            allergies: data.allergies || "",
+            chronic_conditions: data.chronic_conditions || "",
+          });
+        }
+        setIsFetching(false);
+      });
+  }, [user]);
+
+  // ── Profil kaydet ─────────────────────────────────────────────────────────
+  const handleSave = async () => {
+    if (!user) return;
+    setIsSaving(true);
+    const { error } = await supabase.from("profiles").upsert(
+      {
+        id: user.id,
+        email: user.email,
+        blood_type: profile.blood_type,
+        allergies: profile.allergies,
+        chronic_conditions: profile.chronic_conditions,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "id" }
+    );
+    setIsSaving(false);
+    if (error) {
+      toast.error(t("results.error"));
+      console.error(error);
+    } else {
+      toast.success(t("profile.update_success"));
+    }
+  };
+
+  // ── Auth yükleniyor ───────────────────────────────────────────────────────
+  if (authLoading) {
     return (
-      <div className="flex flex-col items-center justify-center pt-8 pb-12 text-center animate-fade-in-up w-full">
-        <div className="w-24 h-24 bg-primary/20 text-primary rounded-full flex items-center justify-center mb-6 border-2 border-primary/30 shadow-[0_0_20px_rgba(52,211,153,0.3)]">
-          <User className="w-12 h-12" />
+      <div className="flex items-center justify-center pt-24">
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // ── Giriş yapılmamış ──────────────────────────────────────────────────────
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center pt-12 pb-8 gap-6 animate-fade-in-up w-full px-2">
+        <div className="w-20 h-20 rounded-full bg-muted/40 border border-border flex items-center justify-center shadow-sm">
+          <User className="w-9 h-9 text-muted-foreground/60" />
         </div>
-        <h2 className="text-3xl font-bold mb-2">{t("profile.welcome")}</h2>
-        <p className="text-muted-foreground mb-10 px-4 leading-relaxed">{t("profile.welcome_desc")}</p>
-        
-        <button 
-          onClick={() => setIsLogged(false)}
-          className="w-full max-w-[280px] py-3.5 rounded-xl border-2 border-destructive/30 text-destructive font-medium hover:bg-destructive/10 hover:border-destructive/60 transition-colors shadow-sm"
+        <div className="text-center space-y-1.5">
+          <h2 className="text-xl font-bold text-foreground">{t("profile.profile")}</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-[260px]">
+            {t("profile.login_required")}
+          </p>
+        </div>
+        <button
+          onClick={() => navigate("/login")}
+          className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-semibold text-sm shadow-md shadow-primary/20 hover:bg-primary/90 transition-all active:scale-[0.98]"
         >
-          {t("profile.logout")}
+          <LogIn className="w-4 h-4" />
+          {t("profile.login_signup")}
         </button>
       </div>
     );
   }
 
-  return (
-    <div className="flex flex-col items-center justify-center pt-4 pb-8 animate-fade-in-up w-full">
-      <div className="glass-card w-full p-7 flex flex-col items-center shadow-lg border-border/50 bg-card/60">
-        <div className="w-16 h-16 bg-muted/60 border border-border rounded-full flex items-center justify-center mb-6 shadow-sm">
-          <User className="w-8 h-8 text-muted-foreground/80" />
-        </div>
-        <h2 className="text-2xl font-bold mb-8 w-full text-center">{t("profile.login_signup")}</h2>
-        
-        <div className="w-full space-y-4 mb-8">
-          <div className="relative">
-            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <input 
-              type="email" 
-              placeholder={t("profile.email_placeholder")} 
-              className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-muted-foreground/60 text-sm shadow-sm"
-            />
-          </div>
-          <div className="relative">
-            <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <input 
-              type="password" 
-              placeholder={t("profile.password_placeholder")} 
-              className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-muted-foreground/60 text-sm shadow-sm"
-            />
-          </div>
-        </div>
+  // ── Giriş yapılmış — ana profil ekranı ───────────────────────────────────
+  const fullName = (user.user_metadata?.full_name as string) || "";
+  const displayTitle = fullName || user.email || "?";
+  const displayLetter = displayTitle.charAt(0).toUpperCase();
 
-        <button 
-          onClick={() => setIsLogged(true)}
-          className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2.5 shadow-[0_4px_14px_rgba(52,211,153,0.4)] hover:shadow-[0_6px_20px_rgba(52,211,153,0.6)]"
-        >
-          <LogIn className="w-5 h-5" />
-          {t("profile.login")}
-        </button>
-        
-        <p className="mt-6 text-sm text-muted-foreground text-center">
-          {t("profile.no_account")}{" "}
-          <span className="text-primary font-bold hover:underline cursor-pointer transition-all">
-            {t("profile.signup")}
+  return (
+    <div className="flex flex-col gap-5 pb-10 animate-fade-in-up w-full">
+
+      {/* ── Kullanıcı Başlığı ── */}
+      <div className="glass-card flex items-center gap-4 p-5 rounded-2xl border border-border/50 bg-background/60 backdrop-blur-xl shadow-lg">
+        <Avatar letter={displayLetter} />
+        <div className="flex flex-col justify-center min-w-0">
+          <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest mb-0.5">{t("profile.my_account")}</p>
+          <p className="text-lg font-bold text-foreground truncate">{displayTitle}</p>
+          {fullName && (
+            <p className="text-sm font-medium text-muted-foreground/70 truncate mt-0.5">{user.email}</p>
+          )}
+          <span className="inline-flex items-center gap-1.5 mt-2 text-[10px] font-bold text-primary/80 bg-primary/10 border border-primary/20 rounded-full px-2.5 py-0.5 w-fit">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block animate-pulse" />
+            {t("profile.active")}
           </span>
-        </p>
+        </div>
       </div>
+
+      {/* ── Sağlık Bilgileri Formu ── */}
+      {isFetching ? (
+        <div className="flex items-center justify-center py-10">
+          <Loader2 className="w-5 h-5 animate-spin text-primary" />
+        </div>
+      ) : (
+        <div className="glass-card flex flex-col gap-6 p-5 rounded-2xl border border-border/50 bg-background/60 backdrop-blur-xl shadow-lg">
+          <div>
+            <h3 className="text-base font-bold text-foreground mb-0.5">{t("profile.health_card_title")}</h3>
+            <p className="text-xs text-muted-foreground">{t("profile.health_card_desc")}</p>
+          </div>
+
+          {/* Kan Grubu */}
+          <div>
+            <SectionTitle icon={<Heart className="w-3.5 h-3.5" />} label={t("profile.blood_type")} />
+            <div className="relative">
+              <select
+                value={profile.blood_type}
+                onChange={(e) => setProfile(p => ({ ...p, blood_type: e.target.value }))}
+                className={INPUT_CLASS + " appearance-none pr-10 cursor-pointer"}
+              >
+                {BLOOD_TYPES.map(bt => (
+                  <option key={bt} value={bt}>{bt === "Bilinmiyor" ? t("profile.unknown") : bt}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Alerjiler */}
+          <div>
+            <SectionTitle icon={<AlertTriangle className="w-3.5 h-3.5" />} label={t("profile.allergies")} />
+            <textarea
+              rows={3}
+              value={profile.allergies}
+              onChange={(e) => setProfile(p => ({ ...p, allergies: e.target.value }))}
+              placeholder={t("profile.allergies_placeholder")}
+              className={INPUT_CLASS}
+            />
+          </div>
+
+          {/* Kronik Hastalıklar */}
+          <div>
+            <SectionTitle icon={<Activity className="w-3.5 h-3.5" />} label={t("profile.chronic_conditions")} />
+            <textarea
+              rows={3}
+              value={profile.chronic_conditions}
+              onChange={(e) => setProfile(p => ({ ...p, chronic_conditions: e.target.value }))}
+              placeholder={t("profile.chronic_conditions_placeholder")}
+              className={INPUT_CLASS}
+            />
+          </div>
+
+          {/* Kaydet Butonu */}
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="w-full h-11 rounded-xl bg-primary text-white font-semibold text-sm flex items-center justify-center gap-2 hover:bg-primary/90 transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed shadow-md shadow-primary/20"
+          >
+            {isSaving
+              ? <><Loader2 className="w-4 h-4 animate-spin" /> {t("profile.saving")}</>
+              : <><Save className="w-4 h-4" /> {t("profile.update_button")}</>
+            }
+          </button>
+        </div>
+      )}
+
+      {/* ── Çıkış Yap ── */}
+      <button
+        onClick={() => signOut()}
+        className="w-full h-11 rounded-xl border border-destructive/30 text-destructive font-semibold text-sm flex items-center justify-center gap-2 hover:bg-destructive/10 hover:border-destructive/60 transition-all active:scale-[0.98] shadow-sm"
+      >
+        <LogOut className="w-4 h-4" />
+        {t("profile.logout")}
+      </button>
+
     </div>
   );
 }
