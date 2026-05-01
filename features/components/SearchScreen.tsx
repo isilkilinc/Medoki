@@ -1,3 +1,4 @@
+import { ImageScanButton } from "./ImageScanButton";
 import { useState } from "react";
 import { Search, Clock, ChevronRight, X } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
@@ -44,7 +45,14 @@ export default function SearchScreen({ onSearch, recentSearches, onDeleteSearch 
           className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-border bg-card/60 focus:bg-background text-foreground placeholder:text-muted-foreground/60 outline-none backdrop-blur-md transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/20 shadow-[0_4px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)]"
         />
       </form>
-
+<div className="mb-4">
+        <ImageScanButton
+          onResult={(medicineName) => {
+            setQuery(medicineName);
+            onSearch(medicineName);
+          }}
+        />
+      </div>
       {/* Popular Tags */}
       <div className="mb-8">
         <h3 className="text-sm font-bold text-foreground mb-4 pl-1">{t("search.popular")}</h3>
