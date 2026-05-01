@@ -1,3 +1,4 @@
+import { recognizeMedicineFromImage } from "../lib/groq";
 import { useState, useRef, useEffect } from "react";
 import { X, Pill, Barcode, ScanLine } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
@@ -9,9 +10,11 @@ interface ScanOverlayProps {
 
 export default function ScanOverlay({ onClose, onScan }: ScanOverlayProps) {
   const { t } = useLanguage();
-  const [input, setInput] = useState("");
-  const [isScanning, setIsScanning] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+const [input, setInput] = useState("");
+const [isScanning, setIsScanning] = useState(false);
+const [isPhotoLoading, setIsPhotoLoading] = useState(false);
+const inputRef = useRef<HTMLInputElement>(null);
+const photoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -92,6 +95,64 @@ export default function ScanOverlay({ onClose, onScan }: ScanOverlayProps) {
             )}
           </button>
         </form>
+        {/* Fotoğrafla Ara */}
+        <input
+          ref={photoInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          capture="environment"
+          style={{ display: "none" }}
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            e.target.value = "";
+            if (file.size > 1_000_000) {
+              alert("Lütfen 1MB altında bir fotoğraf seçin.");
+              return;
+            }
+            setIsPhotoLoading(true);
+            try {
+              const base64 = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve((reader.result as string).split(",")[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+              });
+              const mimeType = file.type as "image/jpeg" | "image/png" | "image/webp";
+              const { medicineName, confidence } = await recognizeMedicineFromImage(base64, mimeType);
+              if (!medicineName || confidence === "none") {
+                alert("İlaç kutusu okunamadı. Daha net bir fotoğraf deneyin.");
+                return;
+              }
+              if (confidence === "low") {
+                const confirmed = window.confirm(`"${medicineName}" ilacı mı arıyorsunuz?`);
+                if (!confirmed) return;
+              }
+              onScan(medicineName);
+            } catch {
+              alert("Bir hata oluştu. Tekrar deneyin.");
+            } finally {
+              setIsPhotoLoading(false);
+            }
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => photoInputRef.current?.click()}
+          disabled={isScanning || isPhotoLoading}
+          className="w-full py-4 rounded-2xl border-2 border-primary/40 bg-transparent text-primary font-bold text-lg cursor-pointer transition-all hover:bg-primary/10 active:scale-95 disabled:opacity-40 flex items-center justify-center gap-2.5"
+        >
+          {isPhotoLoading ? (
+            <>
+              <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+              Tanınıyor...
+            </>
+          ) : (
+            <>
+              📷 Fotoğrafla Ara
+            </>
+          )}
+        </button>
       </div>
 
       <style dangerouslySetInnerHTML={{__html: `
