@@ -479,7 +479,7 @@ Kurallar:
     intro:
       parsed.intro ||
       `${correctedTerm} şikayeti için değerlendirme sonuçları aşağıda listelenmiştir.`,
-    products: products.map((p: any) => {
+    products: products.map((p: { activeIngredient?: string; name?: string; brandExamples?: string[]; typicalUse?: string; form?: string; whyItHelps?: string; cautions?: string[] }) => {
       const activeIngredient = (p.activeIngredient || p.name || "").trim();
       const brandExamples = Array.isArray(p.brandExamples)
         ? p.brandExamples.map((b: string) => String(b).trim()).filter(Boolean)

@@ -81,8 +81,8 @@ export default function Login() {
         toast.success(`Hoş geldin, ${fullName.split(" ")[0]}! Hesabın oluşturuldu 🎉`);
         navigate("/");
       }
-    } catch (err: any) {
-      toast.error(err.message || "Bir hata oluştu.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Bir hata oluştu.");
     } finally {
       setIsLoading(false);
     }
@@ -93,7 +93,7 @@ export default function Login() {
     try {
       await signInWithGoogle();
       // Yönlendirme Supabase tarafından yönetilir.
-    } catch (err: any) {
+    } catch (err) {
       toast.error("Google ile giriş yapılamadı.");
       setIsGoogleLoading(false);
     }

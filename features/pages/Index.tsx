@@ -42,7 +42,7 @@ const Index = () => {
         try {
           const parsed = JSON.parse(saved);
           return parsed.slice(0, 5);
-        } catch {}
+        } catch { /* ignore */ }
       }
     }
     return ["Parol", "Arveles", "Majezik"];
@@ -59,7 +59,7 @@ const Index = () => {
         .limit(10)
         .then(({ data }) => {
            if (data) {
-              const terms = data.map((d: any) => d.search_term);
+              const terms = data.map((d: { search_term: string }) => d.search_term);
               const unique = Array.from(new Set(terms)).slice(0, 5);
               if (unique.length > 0) setRecentSearches(unique as string[]);
            }

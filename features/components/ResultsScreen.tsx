@@ -50,8 +50,8 @@ const ResultsScreen = ({ mode, result, error, query, onBack }: ResultsScreenProp
       try {
         await navigator.share({ title: "Medoki analizi", text: shareText, url: window.location.href });
         return;
-      } catch (err: any) {
-        if (err?.name === "AbortError") return;
+      } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") return;
       }
     }
 
