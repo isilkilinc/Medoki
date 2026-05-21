@@ -174,9 +174,11 @@ export interface SymptomProduct {
 export interface SymptomResult {
   correctedTerm: string;
   intro: string;
-  products: SymptomProduct[];
+  products: SymptomProduct[]; // Artık boş kalacak
+  possibleCauses: string[];
   generalTips: string[];
   whenToSeeDoctor: string[];
+  whichDoctor: string;
   disclaimer: string;
   userExperiences: string[];
 }
@@ -448,85 +450,57 @@ Kullanıcının şikayeti / semptomu: "${userText}"
 
 ⚠️ RED FLAG PROTOKOLÜ (AI Katmanı):
 Göğüs ağrısı, nefes darlığı, kalp krizi şüphesi, bilinç kaybı, felç belirtisi,
-şiddetli/ani karın ağrısı → products dizisini BOŞ bırak, intro'ya acil yönlendirme yaz.
-
-Bu semptoma yönelik SADECE reçetesiz (OTC) seçenekler öner.
-Reçeteli ilaç, antibiyotik veya kontrollü madde ÖNERME.
+şiddetli/ani karın ağrısı → tüm dizileri BOŞ bırak, intro'ya acil yönlendirme yaz.
 
 Aşağıdaki JSON şemasına tam uygun şekilde yanıt ver. Yalnızca geçerli JSON döndür:
 {
   "correctedTerm": "string",
   "intro": "string",
-  "products": [
-    {
-      "activeIngredient": "string",
-      "brandExamples": ["string", "string"],
-      "form": "string",
-      "whyItHelps": "string",
-      "typicalUse": "string",
-      "cautions": ["string", "string"]
-    }
-  ],
+  "products": [],
+  "possibleCauses": ["string", "string", "string"],
   "generalTips": ["string", "string", "string"],
   "whenToSeeDoctor": ["string", "string", "string"],
+  "whichDoctor": "string",
   "disclaimer": "string"
 }
 
 Kurallar:
 - Dil: Türkçe.
-- YETİŞKİN ODAKLI: ASLA şurup veya pediatrik form önerme.
-- DÖZAJ KURALI: typicalUse alanına KESİNLİKLE spesifik mg veya günlük frekans yazma.
-  Şunu yaz: "Prospektüste belirtilen yetişkin dozuna göre kullanın."
+- products dizisi KESİNLİKLE BOŞ kalacak. HİÇBİR ilaç, etken madde veya marka adı önerme.
 - correctedTerm: 'Semptom (Tıbbi Karşılığı)' formatında döndür.
-- 3 ila 5 ürün öner.
-- Mide/sindirim şikayetlerinde NSAİİ ÖNERME (mideyi tahriş eder).
-- Her önerilen ürün SADECE o semptomu hedeflemeli. Alakasız ürün önerme.
-- Önerilen her markayı gerçek Türkiye eczane rafından seç. Uydurma marka YAZMA.
-- Emin olmadığın marka varsa brandExamples dizisini boş bırak.
-- disclaimer: "Bu bilgiler genel amaçlıdır; doktor veya eczacı tavsiyesinin yerine geçmez." içersin.
-- ASLA var olmayan ilaç veya etken madde uydurma. Bilmiyorsan o ürünü listeye ekleme.`.trim();
+- intro: Bu semptom hakkında kısa, genel bir açıklama yaz. Teşhis koymaya çalışma.
+- possibleCauses: Bu semptomu tetikleyebilecek 3 yaygın genel neden (tıbbi teşhis değil, genel bilgi).
+- generalTips: İlaç kullanmadan uygulanabilecek 3 genel önlem (dinlenme, sıvı tüketimi vb.).
+- whenToSeeDoctor: Mutlaka doktora başvurulması gereken 3 durum.
+- whichDoctor: Bu semptom için genellikle hangi uzmana başvurulmalı (örn: "Dahiliye uzmanı veya aile hekimi").
+- disclaimer: "Bu bilgiler yalnızca genel sağlık bilgisi amaçlıdır. Kesinlikle tıbbi teşhis veya tedavi yerine geçmez. Belirtileriniz için mutlaka bir sağlık profesyoneline başvurun." yaz.
+- ASLA ilaç adı, etken madde veya tedavi önerme.
+- ASLA teşhis koymaya çalışma.`.trim();
   const parsed = await groqJsonCompletion(prompt, 1600);
   const products = Array.isArray(parsed.products) ? parsed.products : [];
 
   const correctedTerm = parsed.correctedTerm || userText;
-  const result: SymptomResult = {
+ const result: SymptomResult = {
     correctedTerm,
     intro:
       parsed.intro ||
-      `${correctedTerm} şikayeti için değerlendirme sonuçları aşağıda listelenmiştir.`,
-    products: products.map((p: { activeIngredient?: string; name?: string; brandExamples?: string[]; typicalUse?: string; form?: string; whyItHelps?: string; cautions?: string[] }) => {
-      const activeIngredient = (p.activeIngredient || p.name || "").trim();
-      const brandExamples = Array.isArray(p.brandExamples)
-        ? p.brandExamples.map((b: string) => String(b).trim()).filter(Boolean)
-        : [];
-      // typicalUse doz güvenliği: spesifik mg/frekans varsa üzerine yaz
-      const rawUse: string = p.typicalUse || "";
-      const safeUse = /\d+\s*mg|\d+\s*ml|\d+\s*x|\d+\s*tablet/i.test(rawUse)
-        ? "Prospektüste belirtilen yetişkin dozuna göre kullanın."
-        : rawUse;
-      const baseProduct: SymptomProduct = {
-        activeIngredient,
-        brandExamples,
-        labelLine: symptomProductHeadline({ activeIngredient, brandExamples, name: p.name }),
-        form: p.form || "",
-        whyItHelps: p.whyItHelps || "",
-        typicalUse: safeUse,
-        cautions: Array.isArray(p.cautions) ? p.cautions : [],
-      };
-      return applyPharmacyGuard(baseProduct, userText);
-    }),
+      `${correctedTerm} şikayeti hakkında genel bilgiler aşağıda listelenmiştir.`,
+    products: [], // Artık hiç ilaç önerilmiyor
+    possibleCauses: Array.isArray(parsed.possibleCauses) && parsed.possibleCauses.length
+      ? parsed.possibleCauses
+      : ["Kesin neden için doktora başvurun."],
     generalTips:
       Array.isArray(parsed.generalTips) && parsed.generalTips.length
         ? parsed.generalTips
-        : ["Genel öneri alınamadı; eczacınıza danışın."],
+        : ["Genel öneri alınamadı; doktorunuza danışın."],
     whenToSeeDoctor:
       Array.isArray(parsed.whenToSeeDoctor) && parsed.whenToSeeDoctor.length
         ? parsed.whenToSeeDoctor
         : ["Belirtiler şiddetlenirse veya uzun sürerse doktora başvurun."],
+    whichDoctor: parsed.whichDoctor || "Aile hekimi veya dahiliye uzmanı",
     disclaimer:
-      "Bu bilgiler genel amaçlıdır; doktor veya eczacı tavsiyesinin yerine geçmez. İlaç kullanmadan önce mutlaka prospektüsü okuyun.",
-    // userExperiences: Sabit güvenli metinler (model internete bağlı değil)
-    userExperiences: normalizeUserExperiences(null),
+      "Bu bilgiler yalnızca genel sağlık bilgisi amaçlıdır. Kesinlikle tıbbi teşhis veya tedavi yerine geçmez. Belirtileriniz için mutlaka bir sağlık profesyoneline başvurun.",
+    userExperiences: [],
   };
 
   void setCachedAnalysis(cacheKey, result);
