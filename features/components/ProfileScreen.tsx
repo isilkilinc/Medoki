@@ -4,6 +4,7 @@ import {
   Heart, AlertTriangle, Activity, LogIn
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useGamification, BADGES } from "@/contexts/GamificationContext";
 import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -50,6 +51,7 @@ function SectionTitle({ icon, label }: { icon: React.ReactNode; label: string })
 // ─── Ana Bileşen ─────────────────────────────────────────────────────────────
 export default function ProfileScreen() {
   const { user, signOut, loading: authLoading } = useAuth();
+  const { data: gamification } = useGamification();
   const navigate = useNavigate();
   const { t } = useLanguage();
 
@@ -168,6 +170,55 @@ is_pregnant: profile.is_pregnant,
             <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block animate-pulse" />
             {t("profile.active")}
           </span>
+        </div>
+      </div>
+
+      {/* ── Oyunlaştırma (Gamification) ── */}
+      <div className="glass-card flex flex-col gap-4 p-5 rounded-2xl border border-border/50 bg-background/60 backdrop-blur-xl shadow-lg">
+        <div className="flex items-center justify-between mb-1">
+          <div>
+            <h3 className="text-base font-bold text-foreground">Seviye {gamification.level}</h3>
+            <p className="text-xs text-muted-foreground">Sonraki seviyeye {100 - (gamification.xp % 100)} XP kaldı</p>
+          </div>
+          <div className="bg-primary/10 text-primary px-3 py-1.5 rounded-full text-sm font-bold border border-primary/20">
+            {gamification.xp} XP
+          </div>
+        </div>
+        
+        {/* Progress Bar */}
+        <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full transition-all duration-1000 ease-out relative"
+            style={{ width: `${gamification.xp % 100}%` }}
+          >
+            <div className="absolute inset-0 bg-white/20 animate-pulse" />
+          </div>
+        </div>
+
+        {/* Rozetler */}
+        <div className="mt-2">
+          <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Kazanılan Rozetler</h4>
+          <div className="grid grid-cols-2 gap-3">
+            {Object.values(BADGES).map(badge => {
+              const isUnlocked = gamification.badges.includes(badge.id);
+              return (
+                <div 
+                  key={badge.id}
+                  className={`flex flex-col gap-1 p-3 rounded-xl border transition-all ${
+                    isUnlocked 
+                      ? "bg-primary/5 border-primary/30 shadow-sm" 
+                      : "bg-muted/30 border-border/50 grayscale opacity-60"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{isUnlocked ? "🏆" : "🔒"}</span>
+                    <span className="text-xs font-bold text-foreground leading-tight">{badge.name}</span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-1 leading-snug">{badge.desc}</p>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 

@@ -1,10 +1,11 @@
 import { useState, useRef } from "react";
-import { Copy, Upload, ArrowLeft, CheckCircle } from "lucide-react";
+import { Copy, Upload, ArrowLeft, CheckCircle, ImageDown, Loader2 } from "lucide-react";
 import ResultCard from "./ResultCard";
-import UserExperiencesCard from "./UserExperiencesCard";
 import type { MedicineResult, SymptomResult } from "@/lib/groq";
 import { useLanguage } from "@/lib/i18n";
+import { useTheme } from "@/lib/theme";
 import type { ReactNode } from "react";
+import html2canvas from "html2canvas";
 
 const STAGGER_STEP = 100;
 
@@ -19,8 +20,18 @@ interface ResultsScreenProps {
 
 const ResultsScreen = ({ mode, result, error, query, onBack, isProspectusAnalysis }: ResultsScreenProps) => {
   const [statusMsg, setStatusMsg] = useState("");
+  const [isCapturing, setIsCapturing] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const resultCardRef = useRef<HTMLDivElement>(null);
   const { t } = useLanguage();
+  const { isDark } = useTheme();
+
+  // Temaya göre snapshot renk paleti
+  const snapBg       = isDark ? "#0f172a" : "#ffffff";
+  const snapBorder   = isDark ? "#1e293b" : "#e2e8f0";
+  const snapSubText  = isDark ? "rgba(255,255,255,0.30)" : "rgba(15,23,42,0.35)";
+  const snapDivider  = isDark ? "#1e293b" : "#e2e8f0";
+  const snapGlow     = isDark ? "rgba(0,220,200,0.06)" : "rgba(0,220,200,0.04)";
 
   const getResultsText = () => containerRef.current?.innerText?.trim() || "";
 
@@ -65,6 +76,56 @@ const ResultsScreen = ({ mode, result, error, query, onBack, isProspectusAnalysi
     }
   };
 
+  const handleDownloadImage = async () => {
+    if (!resultCardRef.current || isCapturing) return;
+    setIsCapturing(true);
+    setStatusMsg("Görsel hazırlanıyor…");
+
+    try {
+      const canvas = await html2canvas(resultCardRef.current, {
+        // Aktif temaya göre arka plan — şeffaf yerine solid renk
+        backgroundColor: isDark ? "#0f172a" : "#ffffff",
+        scale: 2.5,
+        useCORS: true,
+        logging: false,
+        scrollY: -window.scrollY,
+        windowWidth: resultCardRef.current.scrollWidth,
+        onclone: (clonedDoc) => {
+          const root = clonedDoc.querySelector("[data-capture-root]") as HTMLElement | null;
+          if (!root) return;
+          // Tema bağlı metin rengi güçlendirme
+          root.querySelectorAll<HTMLElement>("p, li, span, h3").forEach((el) => {
+            const color = window.getComputedStyle(el).color;
+            if (isDark) {
+              // Dark: düşük-opacity beyazları daha opaklı yap
+              if (color.includes("rgba") && color.includes("255, 255, 255")) {
+                el.style.color = "rgba(255,255,255,0.88)";
+              }
+            } else {
+              // Light: düşük-opacity siyahları daha opaklı yap
+              if (color.includes("rgba") && (color.includes("15, 23") || color.includes("0, 0, 0"))) {
+                el.style.color = "rgba(15,23,42,0.85)";
+              }
+            }
+          });
+        },
+      });
+
+      const link = document.createElement("a");
+      link.download = "Medoki-Ozet.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+
+      setStatusMsg("✓ Görsel indirildi!");
+      setTimeout(() => setStatusMsg(""), 2500);
+    } catch {
+      setStatusMsg("Görsel oluşturulamadı.");
+      setTimeout(() => setStatusMsg(""), 2500);
+    } finally {
+      setIsCapturing(false);
+    }
+  };
+
   const hasContent = !!result || !!error;
 
   const renderCards = () => {
@@ -80,7 +141,7 @@ const ResultsScreen = ({ mode, result, error, query, onBack, isProspectusAnalysi
 
     if (mode === "medicine") {
       const r = result as MedicineResult;
-      const cards: Array<{ title: string; content: React.ReactNode; muted?: boolean }> = [
+      const cards: Array<{ title: string; content: React.ReactNode; muted?: boolean; className?: string }> = [
         { title: "Ne İşe Yarar?", content: <p className="text-foreground/75 leading-relaxed m-0 text-sm">{r.purpose}</p> },
         { title: "Önerilen Doz", content: <p className="text-foreground/75 leading-relaxed m-0 text-sm">{r.dosage}</p> },
         { title: "Sık Görülen Yan Etkiler", content: <ul className="list-disc pl-5 text-foreground/75 grid gap-1.5 text-sm">{r.sideEffects.map((s, i) => <li key={i}>{s}</li>)}</ul> },
@@ -96,6 +157,18 @@ const ResultsScreen = ({ mode, result, error, query, onBack, isProspectusAnalysi
                 <p key={i} className="m-0 leading-relaxed">{s}</p>
               ))}
             </div>
+          )
+        });
+      }
+
+      if (r.foodInteractions) {
+        cards.push({
+          title: "Besin ve Takviye Etkileşimi",
+          className: "border-amber-500/30 bg-amber-500/5 shadow-[0_4px_24px_rgba(245,158,11,0.05)]",
+          content: (
+            <p className="text-foreground/85 leading-relaxed m-0 text-sm font-medium">
+              {r.foodInteractions}
+            </p>
           )
         });
       }
@@ -147,16 +220,12 @@ const ResultsScreen = ({ mode, result, error, query, onBack, isProspectusAnalysi
               key={i}
               title={card.title}
               muted={card.muted}
-              className="animate-fade-in-up"
+              className={`animate-fade-in-up ${card.className || ""}`}
               style={{ animationDelay: `${i * STAGGER_STEP}ms` }}
             >
               {card.content}
             </ResultCard>
           ))}
-          <UserExperiencesCard
-            items={r.userExperiences}
-            style={{ animationDelay: `${cards.length * STAGGER_STEP}ms` }}
-          />
         </>
       );
     }
@@ -220,13 +289,6 @@ const ResultsScreen = ({ mode, result, error, query, onBack, isProspectusAnalysi
         <ResultCard title="Tıbbi Not" muted className="animate-fade-in-up" style={{ animationDelay: `${cardIndex++ * STAGGER_STEP}ms` }}>
           <p className="text-foreground/75 leading-relaxed m-0 text-sm">{r.disclaimer}</p>
         </ResultCard>
-
-        {!isRedFlag && r.userExperiences && r.userExperiences.length > 0 && (
-          <UserExperiencesCard
-            items={r.userExperiences}
-            style={{ animationDelay: `${cardIndex++ * STAGGER_STEP}ms` }}
-          />
-        )}
       </>
     );
   };
@@ -253,17 +315,129 @@ const ResultsScreen = ({ mode, result, error, query, onBack, isProspectusAnalysi
             type="button"
             onClick={handleCopy}
             disabled={!hasContent}
-            className="flex-1 min-w-[140px] inline-flex items-center justify-center gap-2 text-xs font-semibold rounded-2xl px-3 py-2.5 min-h-[42px] border border-border bg-muted/40 text-muted-foreground cursor-pointer transition-all hover:bg-muted/60 hover:text-foreground active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex-1 min-w-[120px] inline-flex items-center justify-center gap-2 text-xs font-semibold rounded-2xl px-3 py-2.5 min-h-[42px] border border-border bg-muted/40 text-muted-foreground cursor-pointer transition-all hover:bg-muted/60 hover:text-foreground active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Copy className="w-4 h-4 opacity-80" />
             {t("results.copy")}
           </button>
+
+          {/* ── Görsel İndir / Paylaş Butonu ── */}
+          <button
+            type="button"
+            id="download-image-btn"
+            onClick={handleDownloadImage}
+            disabled={!hasContent || isCapturing}
+            className="flex-1 min-w-[120px] inline-flex items-center justify-center gap-2 text-xs font-semibold rounded-2xl px-3 py-2.5 min-h-[42px] border border-primary/30 bg-primary/10 text-primary cursor-pointer transition-all hover:bg-primary/20 hover:border-primary/50 hover:shadow-[0_0_16px_rgba(0,220,200,0.15)] active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed"
+            aria-label="Görsel olarak indir"
+            title="Özeti PNG olarak indir"
+          >
+            {isCapturing
+              ? <Loader2 className="w-4 h-4 animate-spin" />
+              : <ImageDown className="w-4 h-4 opacity-90" />
+            }
+            {isCapturing ? "Hazırlanıyor…" : "Görsel İndir"}
+          </button>
         </div>
       </div>
 
-      {/* Results */}
-      <div ref={containerRef} className="grid gap-3">
-        {renderCards()}
+      {/* ── Snapshot alınacak alan (resultCardRef) ── Butonlar DIŞARIDA ── */}
+      <div
+        ref={resultCardRef}
+        data-capture-root
+        style={{
+          backgroundColor: snapBg,
+          borderRadius: "24px",
+          padding: "40px",
+          border: `1px solid ${snapBorder}`,
+          boxShadow: isDark
+            ? "0 25px 50px -12px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.04)"
+            : "0 10px 40px -8px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.04)",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        {/* Subtle aksan ışığı — temaya göre */}
+        <div
+          style={{
+            position: "absolute",
+            top: "-80px",
+            right: "-80px",
+            width: "220px",
+            height: "220px",
+            borderRadius: "50%",
+            background: `radial-gradient(circle, ${snapGlow} 0%, transparent 70%)`,
+            pointerEvents: "none",
+          }}
+        />
+
+        {/* Sonuç kartları */}
+        <div ref={containerRef} className="grid gap-3">
+          {renderCards()}
+        </div>
+
+        {/* ── Minimal Footer Branding ── */}
+        <div
+          style={{
+            marginTop: "28px",
+            paddingTop: "16px",
+            borderTop: `1px solid ${snapDivider}`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          {/* Sol: Logo + İsim */}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", opacity: 0.75 }}>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "22px",
+                height: "22px",
+                borderRadius: "6px",
+                background: "rgba(0,220,200,0.15)",
+                border: "1px solid rgba(0,220,200,0.30)",
+                fontSize: "11px",
+                lineHeight: 1,
+              }}
+            >
+              💊
+            </span>
+            <span
+              style={{
+                fontWeight: 700,
+                fontSize: "13px",
+                color: "#00c4b4",
+                letterSpacing: "-0.2px",
+              }}
+            >
+              Medoki
+            </span>
+            <span
+              style={{
+                fontSize: "11px",
+                color: snapSubText,
+                fontWeight: 400,
+              }}
+            >
+              · Akıllı Sağlık Rehberi
+            </span>
+          </div>
+
+          {/* Sağ: Uyarı notu */}
+          <span
+            style={{
+              fontSize: "9px",
+              color: snapSubText,
+              maxWidth: "180px",
+              textAlign: "right",
+              lineHeight: 1.4,
+            }}
+          >
+            Tıbbi tavsiye değildir.
+          </span>
+        </div>
       </div>
 
       {/* Status */}

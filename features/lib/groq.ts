@@ -2,13 +2,7 @@ import { getCachedAnalysis, setCachedAnalysis } from "./supabase";
 
 const API_KEY = (import.meta.env.VITE_GROQ_API_KEY || "").trim();
 
-// ─── Güvenli sabit userExperiences metinleri ─────────────────────────────────
-// Model internete bağlı değil — uydurma "kullanıcı yorumu" üretmesini engelliyoruz.
-const SAFE_USER_EXPERIENCES = [
-  "Kullanıcı deneyimleri kişiden kişiye önemli ölçüde farklılık gösterebilir.",
-  "Herhangi bir yan etki veya beklenmedik etki durumunda ilacı bırakıp eczacınıza danışın.",
-  "Bu bilgiler gerçek kullanıcı yorumlarına değil, genel tıbbi literatüre dayanmaktadır.",
-];
+
 
 function stripCodeFences(value: string): string {
   return value.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/\s*```$/i, "");
@@ -35,7 +29,7 @@ async function groqJsonCompletion(userContent: string, maxTokens: number) {
         {
           role: "system",
           content:
-            "You are a highly skilled Turkish Pharmacist. STRICT RULES: 1) Only provide information about real, verified medicines. 2) NEVER fabricate drug information, side effects, or interactions. 3) If unsure about any information, write 'Prospektüste doğrulayın' instead. 4) You MUST recognize Turkish brands: Parol/Calpol→Paracetamol, Arveles→Dexketoprofen, Majezik→Flurbiprofen, Dolven/Ibufen/Nurofen→Ibuprofen, Augmentin→Amoxicillin/Clavulanate, Desmont→Montelukast, Buscopan→Hyoscine, Dikloron/Voltaren→Diclofenac, Cipro→Ciprofloxacin, Xanax→Alprazolam. 5) ALWAYS format correctedTerm as 'BrandName (ActiveIngredient)'. 6) For dosage field NEVER write specific mg or frequency — always write: 'Doz bilgisi için prospektüsü veya eczacınızı kontrol edin.' 7) Return only valid JSON, no markdown.",
+            "You are a highly skilled Turkish Pharmacist. STRICT RULES: 1) Only provide information about real, verified medicines. 2) NEVER fabricate drug information, side effects, or interactions. 3) If unsure about any information, write 'Prospektüste doğrulayın' instead. 4) You MUST recognize Turkish brands: Parol/Calpol→Paracetamol, Arveles→Dexketoprofen, Majezik→Flurbiprofen, Dolven/Ibufen/Nurofen→Ibuprofen, Augmentin→Amoxicillin/Clavulanate, Desmont→Montelukast, Buscopan→Hyoscine, Dikloron/Voltaren→Diclofenac, Cipro→Ciprofloxacin, Xanax→Alprazolam, Aferin→Paracetamol/Chlorpheniramine. 5) ALWAYS format correctedTerm as 'BrandName (ActiveIngredient)'. 6) For dosage field NEVER write specific mg or frequency — always write: 'Doz bilgisi için prospektüsü veya eczacınızı kontrol edin.' 7) Return only valid JSON, no markdown.",
         },
         { role: "user", content: userContent },
         ]
@@ -65,7 +59,7 @@ export async function recognizeMedicineFromImage(
       Authorization: `Bearer ${API_KEY}`,
     },
     body: JSON.stringify({
-      model: "llama-3.2-11b-vision-preview",
+      model: "meta-llama/llama-4-scout-17b-16e-instruct",
       temperature: 0.1,
       max_tokens: 150,
       messages: [
@@ -99,11 +93,13 @@ Kurallar:
 
   if (!response.ok) {
     const err = await response.text();
+    console.error(`[Vision API Hata] Status: ${response.status}`, err);
     throw new Error(`Groq Vision hatası (${response.status}): ${err}`);
   }
 
   const data = await response.json();
   const rawText = data?.choices?.[0]?.message?.content || "";
+  console.log("[Vision API Ham Yanıt]", rawText);
 
   try {
     const parsed = JSON.parse(stripCodeFences(rawText).trim());
@@ -111,7 +107,8 @@ Kurallar:
       medicineName: parsed.medicineName || null,
       confidence: parsed.confidence || "none",
     };
-  } catch {
+  } catch (parseErr) {
+    console.error("[Vision Parse Hatası] Ham metin:", rawText, parseErr);
     return { medicineName: null, confidence: "none" };
   }
 }
@@ -138,11 +135,7 @@ function isLegitTypo(input: string, suggestion: string): boolean {
   return true;
 }
 
-export function normalizeUserExperiences(_raw: unknown): string[] {
-  // Güvenlik: Model internete bağlı değil, uydurma yorumlar üretir.
-  // Sabit ve doğru bilgi içeren metinler kullanıyoruz.
-  return [...SAFE_USER_EXPERIENCES];
-}
+
 export interface UserProfile {
   birthYear?: number | null;
   isPregnant?: boolean;
@@ -156,9 +149,9 @@ export interface MedicineResult {
   sideEffects: string[];
   warnings: string[];
   sensitivityWarnings: string[];
+  foodInteractions: string | null;
   summary: string;
   disclaimer: string;
-  userExperiences: string[];
 }
 
 export interface SymptomProduct {
@@ -180,7 +173,6 @@ export interface SymptomResult {
   whenToSeeDoctor: string[];
   whichDoctor: string;
   disclaimer: string;
-  userExperiences: string[];
 }
 
 // ─── PharmacyGuard: Tıbbi Doğruluk ve Form Kontrolü ──────────────────────────
@@ -294,6 +286,7 @@ JSON şeması:
   "sideEffects": ["string", "string", "string"],
   "warnings": ["string", "string", "string"],
   "sensitivityWarnings": ["string", "string"],
+  "foodInteractions": "string veya null",
   "summary": "string",
   "disclaimer": "string"
 }
@@ -307,6 +300,7 @@ Kurallar:
   Forma ilişkin genel bilgi (tablet, kapsül) ekleyebilirsin ama sayı YASAK.
 - correctedTerm: 'BrandName (ActiveIngredient)' formatında döndür.
 - summary: Kullanıcı dostu, sade Türkçe yaz.
+- Eğer ilacın belirli bir besin, içecek (örn: alkol, greyfurt suyu, süt) veya yaygın vitamin/takviyelerle bilinen kritik bir etkileşimi varsa, bunu 'foodInteractions' alanına kısa ve net bir uyarı olarak yaz. Eğer bilinen bir etkileşimi yoksa null döndür.
 - sensitivityWarnings: Yaygın alerjenleri ve hayvansal içerikleri tara, '⚠️' ile başlat.
 - disclaimer: Her zaman şunu içersin: "Bu bilgiler genel amaçlıdır; doktor veya eczacı tavsiyesinin yerine geçmez. İlaç kullanmadan önce mutlaka prospektüsü okuyun."
 - Emin olmadığın bilgide "Prospektüste doğrulayın" yaz.
@@ -344,13 +338,12 @@ ${userProfile?.chronicConditions ? `- Kullanıcının kronik hastalıkları: ${u
     sensitivityWarnings: Array.isArray(parsed.sensitivityWarnings)
       ? parsed.sensitivityWarnings
       : [],
+    foodInteractions: parsed.foodInteractions || null,
     summary:
       parsed.summary ||
       `${correctedTerm} için hazırlanan analizde, ilacın ${purpose.toLowerCase()} amacıyla kullanıldığı belirlenmiştir.`,
     disclaimer:
       "Bu bilgiler genel amaçlıdır; doktor veya eczacı tavsiyesinin yerine geçmez. İlaç kullanmadan önce mutlaka prospektüsü okuyun.",
-    // userExperiences: Model internete bağlı değil, sabit güvenli metinler kullanıyoruz
-    userExperiences: normalizeUserExperiences(null),
   };
 
   void setCachedAnalysis(cacheKey, result);
@@ -424,15 +417,16 @@ export async function analyzeSymptom(userText: string): Promise<SymptomResult> {
       correctedTerm: userText,
       intro: warning,
       products: [],
+      possibleCauses: ["Ciddi tıbbi aciliyet gerektiren durum (örn: Kalp krizi, felç, kanama vb.)"],
       generalTips: [
         "Belirtiler geçmeden hareket etmeyin, yere oturun veya uzanın.",
         "Yanınızdaki birinden 112'yi aramasını isteyin.",
         "Herhangi bir ilaç veya yiyecek almayın.",
       ],
       whenToSeeDoctor: ["DERHAL 112'yi arayın veya en yakın acil servise gidin."],
+      whichDoctor: "ACİL SERVİS",
       disclaimer:
         "Bu mesaj otomatik bir güvenlik uyarısıdır. Lütfen tıbbi acil durumda zaman kaybetmeden yardım isteyin.",
-      userExperiences: [],
     };
   }
   // ─────────────────────────────────────────────────────────────────────────────
@@ -480,7 +474,7 @@ Kurallar:
   const products = Array.isArray(parsed.products) ? parsed.products : [];
 
   const correctedTerm = parsed.correctedTerm || userText;
- const result: SymptomResult = {
+  const result: SymptomResult = {
     correctedTerm,
     intro:
       parsed.intro ||
@@ -500,7 +494,6 @@ Kurallar:
     whichDoctor: parsed.whichDoctor || "Aile hekimi veya dahiliye uzmanı",
     disclaimer:
       "Bu bilgiler yalnızca genel sağlık bilgisi amaçlıdır. Kesinlikle tıbbi teşhis veya tedavi yerine geçmez. Belirtileriniz için mutlaka bir sağlık profesyoneline başvurun.",
-    userExperiences: [],
   };
 
   void setCachedAnalysis(cacheKey, result);
@@ -598,10 +591,13 @@ isValid: inputType "medicine" ve yazım hatası yoksa true.
 isTypo: SADECE bariz HARF HATASI varsa true. Marka ↔ etken madde dönüşümü YASAK.
 suggestion: isTypo:true ise düzeltilmiş ilaç adı, aksi halde null.
 
+ÖZEL KURAL: "Aferin" kelimesini tebrik/övme sözcüğü olarak DEĞİL, yaygın bir Türkiye soğuk algınlığı ilacı ticari markası olarak değerlendir ve KESİNLİKLE "medicine" seç.
+
 Örnekler:
 "Majezik" → inputType:"medicine", isValid:true, isTypo:false, isSymptom:false, suggestion:null
 "baş ağrısı" → inputType:"symptom", isValid:false, isTypo:false, isSymptom:true, suggestion:null
-"asdfg" → inputType:"invalid", isValid:false, isTypo:false, isSymptom:false, suggestion:null`;
+"asdfg" → inputType:"invalid", isValid:false, isTypo:false, isSymptom:false, suggestion:null
+"Aferin" → inputType:"medicine", isValid:true, isTypo:false, isSymptom:false, suggestion:null`;
 
   try {
     const parsed = await groqJsonCompletion(prompt, 150);
@@ -756,8 +752,7 @@ Tüm metin ${language === "tr" ? "Türkçe" : "İngilizce"} olsun. Yalnızca aş
   "warnings": ["string", "string"],
   "sensitivityWarnings": ["string", "string"],
   "summary": "string (Sade bir özet)",
-  "disclaimer": "Bu bilgiler yüklenen prospektüsten alınmıştır. Doktor veya eczacınıza danışmadan ilaç kullanmayın.",
-  "userExperiences": []
+  "disclaimer": "Bu bilgiler yüklenen prospektüsten alınmıştır. Doktor veya eczacınıza danışmadan ilaç kullanmayın."
 }
 
 ÇOK ÖNEMLİ KURALLAR:

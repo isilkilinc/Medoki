@@ -1,34 +1,85 @@
 import { recognizeMedicineFromImage } from "../lib/groq";
 import { useState, useRef } from "react";
 import { X, Camera, Upload } from "lucide-react";
+import { useGamification } from "@/contexts/GamificationContext";
 
 interface ScanOverlayProps {
   onClose: () => void;
   onScan: (text: string) => void;
 }
 
+/**
+ * Görseli canvas üzerinden sıkıştırır.
+ * Maksimum 800px, JPEG kalite 0.75 — API payload limitine takılmamak için.
+ */
+async function compressImage(file: File): Promise<{ base64: string; mimeType: "image/jpeg" }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+
+      const MAX = 800;
+      let { width, height } = img;
+      if (width > MAX || height > MAX) {
+        if (width > height) {
+          height = Math.round((height * MAX) / width);
+          width = MAX;
+        } else {
+          width = Math.round((width * MAX) / height);
+          height = MAX;
+        }
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { reject(new Error("Canvas context alınamadı.")); return; }
+
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // JPEG, kalite 0.75 — yeterince küçük & net
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.75);
+      const base64 = dataUrl.split(",")[1];
+      console.log(`[Vision Compress] ${file.name} → ${width}×${height}, base64 uzunluk: ${base64.length}`);
+      resolve({ base64, mimeType: "image/jpeg" });
+    };
+
+    img.onerror = (e) => {
+      URL.revokeObjectURL(objectUrl);
+      console.error("[Vision Compress Hata]", e);
+      reject(new Error("Görüntü yüklenemedi."));
+    };
+
+    img.src = objectUrl;
+  });
+}
+
 export default function ScanOverlay({ onClose, onScan }: ScanOverlayProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const cameraRef = useRef<HTMLInputElement>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { triggerAction } = useGamification();
   const galleryRef = useRef<HTMLInputElement>(null);
 
   async function handleFile(file: File) {
     setErrorMsg("");
-    if (file.size > 1_000_000) {
-      setErrorMsg("Lütfen 1MB altında bir fotoğraf seçin.");
+
+    // Makul üst limit: 20MB (ham dosya) — canvas zaten küçültecek
+    if (file.size > 20_000_000) {
+      setErrorMsg("Lütfen 20MB altında bir fotoğraf seçin.");
       return;
     }
+
     setIsLoading(true);
     try {
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve((reader.result as string).split(",")[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-      const mimeType = file.type as "image/jpeg" | "image/png" | "image/webp";
+      // Canvas ile sıkıştır → max 800px, JPEG 0.75
+      const { base64, mimeType } = await compressImage(file);
+
       const { medicineName, confidence } = await recognizeMedicineFromImage(base64, mimeType);
+
       if (!medicineName || confidence === "none") {
         setErrorMsg("İlaç kutusu okunamadı. Daha net bir fotoğraf deneyin.");
         return;
@@ -37,9 +88,13 @@ export default function ScanOverlay({ onClose, onScan }: ScanOverlayProps) {
         const confirmed = window.confirm(`"${medicineName}" ilacı mı arıyorsunuz?`);
         if (!confirmed) return;
       }
+      
+      triggerAction("first_camera");
       onScan(medicineName);
-    } catch {
-      setErrorMsg("Bir hata oluştu. Tekrar deneyin.");
+    } catch (err) {
+      console.error("[ScanOverlay handleFile Hata]", err);
+      const msg = err instanceof Error ? err.message : "Bilinmeyen hata";
+      setErrorMsg(`Bir hata oluştu: ${msg}`);
     } finally {
       setIsLoading(false);
     }

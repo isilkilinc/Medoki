@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Pill, AlertTriangle, Activity, FileText, Info, Beaker } from "lucide-react";
+import { Pill, AlertTriangle, Activity, FileText, Info, Beaker, Apple } from "lucide-react";
 
 const ICON_MAP: Record<string, ReactNode> = {
   "kullanılır": <Pill className="w-5 h-5 text-primary" />,
@@ -7,6 +7,7 @@ const ICON_MAP: Record<string, ReactNode> = {
   "yan etki": <Activity className="w-5 h-5 text-destructive" />,
   "uyarı": <AlertTriangle className="w-5 h-5 text-destructive" />,
   "hassasiyet": <AlertTriangle className="w-5 h-5 text-destructive" />,
+  "etkileşim": <Apple className="w-5 h-5 text-amber-500" />,
   "özet": <FileText className="w-5 h-5 text-primary" />,
   "not": <Info className="w-5 h-5 text-muted-foreground" />,
 };

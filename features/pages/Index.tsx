@@ -7,6 +7,7 @@ import ScanOverlay from "@/components/ScanOverlay";
 import BottomNav, { TabType } from "@/components/BottomNav";
 import ProfileScreen from "@/components/ProfileScreen";
 import SettingsScreen from "@/components/SettingsScreen";
+import FamilyScreen from "@/components/FamilyScreen";
 import type { ReactNode } from "react";
 import { analyzeMedicine, analyzeSymptom, validateMedicine, validateSymptom } from "@/lib/groq";
 import type { MedicineResult, SymptomResult, UserProfile } from "@/lib/groq";
@@ -16,6 +17,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { LogIn, LogOut, Loader2 } from "lucide-react";
+import { useGamification } from "@/contexts/GamificationContext";
 
 type Screen = "home" | "results";
 type Mode = "medicine" | "symptom";
@@ -36,6 +38,7 @@ const Index = () => {
   const [isProspectusAnalysis, setIsProspectusAnalysis] = useState(false);
   const [analysisKey, setAnalysisKey] = useState<number>(Date.now());
   const { user, signOut, loading: authLoading } = useAuth();
+  const { incrementSearchCount } = useGamification();
   const navigate = useNavigate();
 
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
@@ -196,6 +199,7 @@ const Index = () => {
         const res = await analyzeMedicine(text, userProfile);
         saveToHistory(res.correctedTerm || text);
         setResult(res);
+        incrementSearchCount();
       } else {
         // ── SEMPTOM MODU: 3 AŞAMALI DOĞRULAMA ──
         const symptomVal = await validateSymptom(text);
@@ -332,6 +336,7 @@ const Index = () => {
           }} 
           onDeleteSearch={handleDeleteSearch}
         />}
+        {activeTab === "family" && <FamilyScreen />}
         {activeTab === "profile" && <ProfileScreen />}
         {activeTab === "settings" && <SettingsScreen />}
 

@@ -27,6 +27,7 @@ const translations: Translations = {
   "nav.home": { tr: "Ana Sayfa", en: "Home" },
   "nav.search": { tr: "Ara", en: "Search" },
   "nav.scan": { tr: "Tara", en: "Scan" },
+  "nav.family": { tr: "Yakınlarım", en: "Family" },
   "nav.profile": { tr: "Profil", en: "Profile" },
   "nav.settings": { tr: "Ayarlar", en: "Settings" },
   "nav.coming_soon": { tr: "Çok yakında!", en: "Coming soon!" },
