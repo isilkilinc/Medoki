@@ -1,7 +1,7 @@
-import { Home, Search, Camera, User, Settings, Users } from "lucide-react";
+import { Home, Search, Camera, User, Settings, Users, BookHeart } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 
-export type TabType = "home" | "search" | "family" | "profile" | "settings";
+export type TabType = "home" | "search" | "diary" | "family" | "profile" | "settings";
 
 interface BottomNavProps {
   activeTab: TabType;
@@ -30,6 +30,14 @@ const BottomNav = ({ activeTab, onChangeTab, onScanClick }: BottomNavProps) => {
         >
           <Search className="w-5 h-5" />
           <span>{t("nav.search")}</span>
+        </button>
+        <button 
+          className={`bottom-nav-item ${activeTab === 'diary' ? 'active' : ''}`} 
+          aria-label="Günlük"
+          onClick={() => onChangeTab('diary')}
+        >
+          <BookHeart className="w-5 h-5" />
+          <span>Günlük</span>
         </button>
       </div>
 

@@ -8,6 +8,8 @@ import BottomNav, { TabType } from "@/components/BottomNav";
 import ProfileScreen from "@/components/ProfileScreen";
 import SettingsScreen from "@/components/SettingsScreen";
 import FamilyScreen from "@/components/FamilyScreen";
+import SymptomDiaryScreen from "@/components/SymptomDiaryScreen";
+import Chatbot from "@/components/Chatbot";
 import type { ReactNode } from "react";
 import { analyzeMedicine, analyzeSymptom, validateMedicine, validateSymptom } from "@/lib/groq";
 import type { MedicineResult, SymptomResult, UserProfile } from "@/lib/groq";
@@ -18,6 +20,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { LogIn, LogOut, Loader2 } from "lucide-react";
 import { useGamification } from "@/contexts/GamificationContext";
+import { useNotifications } from "@/hooks/useNotifications";
 
 type Screen = "home" | "results";
 type Mode = "medicine" | "symptom";
@@ -40,6 +43,9 @@ const Index = () => {
   const { user, signOut, loading: authLoading } = useAuth();
   const { incrementSearchCount } = useGamification();
   const navigate = useNavigate();
+
+  // Initialize notifications globally
+  useNotifications();
 
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
@@ -337,6 +343,7 @@ const Index = () => {
           onDeleteSearch={handleDeleteSearch}
         />}
         {activeTab === "family" && <FamilyScreen />}
+        {activeTab === "diary" && <SymptomDiaryScreen />}
         {activeTab === "profile" && <ProfileScreen />}
         {activeTab === "settings" && <SettingsScreen />}
 
@@ -361,6 +368,7 @@ const Index = () => {
         />
       )}
 
+      <Chatbot />
       <BottomNav activeTab={activeTab} onChangeTab={handleTabChange} onScanClick={() => setShowScan(true)} />
     </>
   );

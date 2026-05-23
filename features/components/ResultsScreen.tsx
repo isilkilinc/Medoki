@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Copy, Upload, ArrowLeft, CheckCircle, ImageDown, Loader2 } from "lucide-react";
 import ResultCard from "./ResultCard";
+import NearbyPharmacies from "./NearbyPharmacies";
 import type { MedicineResult, SymptomResult } from "@/lib/groq";
 import { useLanguage } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
@@ -457,8 +458,12 @@ const ResultsScreen = ({ mode, result, error, query, onBack, isProspectusAnalysi
         <Upload className="w-5 h-5 opacity-95 shrink-0" />
         <span className="whitespace-nowrap max-[400px]:sr-only text-xs">{t("results.share")}</span>
       </button>
+
+      {/* Nöbetçi Eczaneler Modülü */}
+      <NearbyPharmacies />
     </section>
   );
 };
+
 
 export default ResultsScreen;

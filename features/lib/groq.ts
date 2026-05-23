@@ -794,3 +794,98 @@ Tüm metin ${language === "tr" ? "Türkçe" : "İngilizce"} olsun. Yalnızca aş
     throw new Error("PDF analiz edilemedi. Lütfen geçerli bir prospektüs yükleyin.");
   }
 }
+
+export async function checkSideEffect(medicineName: string, symptoms: string): Promise<string> {
+  if (!API_KEY) throw new Error("API anahtarı bulunamadı.");
+
+  const prompt = `Sen uzman bir sağlık asistanısın. Kullanıcı şu anda ${medicineName} ilacını kullanıyor ve şu semptomları yaşıyor: ${symptoms}. Senin görevin bu semptomların ilacın bilinen, beklenen yan etkilerinden olup olmadığını analiz etmektir. Eğer beklenen bir yan etkiyse kullanıcıyı rahatlat (paniğe gerek yok de), eğer beklenmeyen veya tehlikeli bir durumsa derhal doktora danışmasını tavsiye et. Kısa, şefkatli ve net bir cevap ver. Yalnızca aşağıdaki JSON formatında yanıt ver:
+{
+  "feedback": "string"
+}`;
+
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      temperature: 0.2,
+      max_tokens: 500,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: prompt }
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`Groq hatası (${response.status}): ${err}`);
+  }
+
+  const data = await response.json();
+  const rawText = data?.choices?.[0]?.message?.content || "";
+
+  try {
+    const parsed = JSON.parse(stripCodeFences(rawText).trim());
+    return parsed.feedback || "Analiz tamamlanamadı.";
+  } catch {
+    throw new Error("Yanıt işlenemedi.");
+  }
+}
+
+export type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
+export async function chatWithMedoki(
+  history: ChatMessage[],
+  newMessage: string
+): Promise<string> {
+  if (!API_KEY) throw new Error("API anahtarı bulunamadı.");
+
+  const systemPrompt = `Senin adın Medoki. Kullanıcılara ilaç prospektüsleri, yan etkiler ve genel sağlık bilgileri konusunda yardımcı olan şefkatli ve akıllı bir asistansın. ASLA kesin tıbbi teşhis koyma veya tedavi önerme. Şüpheli veya tehlikeli durumlarda her zaman bir hekime danışılmasını tavsiye et. Kısa, samimi ve anlaşılır cevaplar ver. Yalnızca aşağıdaki JSON formatında yanıt ver:
+{
+  "response": "string"
+}`;
+
+  const messages = [
+    { role: "system", content: systemPrompt },
+    ...history.map(m => ({ role: m.role, content: m.content })),
+    { role: "user", content: newMessage }
+  ];
+
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      temperature: 0.3,
+      max_tokens: 800,
+      response_format: { type: "json_object" },
+      messages: messages,
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`Groq hatası (${response.status}): ${err}`);
+  }
+
+  const data = await response.json();
+  const rawText = data?.choices?.[0]?.message?.content || "";
+
+  try {
+    const parsed = JSON.parse(stripCodeFences(rawText).trim());
+    return parsed.response || "Şu anda yanıt veremiyorum, lütfen tekrar deneyin.";
+  } catch {
+    throw new Error("Yanıt işlenemedi.");
+  }
+}
+
