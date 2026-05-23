@@ -274,6 +274,20 @@ export async function analyzeMedicine(userText: string, userProfile?: UserProfil
   }
   console.log(`[Cache MISS] ${cacheKey} → Groq API çağrılıyor`);
 
+  // ─── Prospektüs PDF kontrolü ──────────────────────────────────────────────
+  const { findProspectus, downloadProspectus } = await import("./supabase");
+  const storagePath = await findProspectus(userText);
+  if (storagePath) {
+    console.log(`[Prospektüs] Bulundu: ${storagePath}`);
+    const pdfText = await downloadProspectus(storagePath);
+    if (pdfText) {
+      console.log(`[Prospektüs] PDF okundu, analiz ediliyor...`);
+      return analyzeProspectus(pdfText, "tr");
+    }
+  }
+  console.log(`[Prospektüs] Bulunamadı, normal AI analizi yapılıyor...`);
+  // ─────────────────────────────────────────────────────────────────────────
+
   const prompt = `
 Kullanıcıdan gelen ilaç adını analiz et: "${userText}"
 
