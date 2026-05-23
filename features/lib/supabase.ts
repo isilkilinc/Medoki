@@ -111,3 +111,73 @@ export async function setCachedAnalysis(
   }
   */
 }
+// ─── Prospektüs Index ─────────────────────────────────────────────────────────
+
+/**
+ * İlaç adına göre Supabase'de prospektüs PDF'i ara.
+ * Hem medicine_name hem de brand_names dizisinde arar.
+ */
+export async function findProspectus(medicineName: string): Promise<string | null> {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
+
+  const normalized = medicineName.trim().toLowerCase();
+
+  try {
+    // Önce medicine_name'de ara
+    const { data, error } = await supabase
+      .from("prospectus_index")
+      .select("storage_path")
+      .ilike("medicine_name", normalized)
+      .maybeSingle();
+
+    if (!error && data) return data.storage_path;
+
+    // Bulunamazsa brand_names dizisinde ara
+    const { data: data2, error: error2 } = await supabase
+      .from("prospectus_index")
+      .select("storage_path")
+      .contains("brand_names", [normalized])
+      .maybeSingle();
+
+    if (!error2 && data2) return data2.storage_path;
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Supabase Storage'dan PDF'i indir ve metin olarak döndür.
+ */
+export async function downloadProspectus(storagePath: string): Promise<string | null> {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
+
+  try {
+    const { data, error } = await supabase.storage
+      .from("prospectus-pdfs")
+      .download(storagePath);
+
+    if (error || !data) return null;
+
+    const arrayBuffer = await data.arrayBuffer();
+    const uint8 = new Uint8Array(arrayBuffer);
+    const decoder = new TextDecoder("utf-8", { fatal: false });
+    const raw = decoder.decode(uint8);
+
+    // PDF metin akışlarını çek
+    let text = "";
+    const btMatches = raw.match(/BT[\s\S]*?ET/g) || [];
+    for (const block of btMatches) {
+      const strMatches = block.match(/\(([^)]+)\)/g) || [];
+      for (const s of strMatches) {
+        text += s.slice(1, -1) + " ";
+      }
+    }
+
+    text = text.replace(/\s+/g, " ").trim();
+    return text.length > 100 ? text.slice(0, 8000) : null;
+  } catch {
+    return null;
+  }
+}
