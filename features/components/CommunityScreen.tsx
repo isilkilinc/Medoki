@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
-import { MessageCircleHeart, Heart, Sparkles, Send, UserSecret } from "lucide-react";
+import { MessageCircleHeart, Heart, Sparkles, Send } from "lucide-react";
 
 interface Post {
   id: string;
