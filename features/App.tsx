@@ -1,4 +1,4 @@
-import UpdatePassword from "@/features/pages/UpdatePassword";
+import UpdatePassword from "./pages/UpdatePassword"; // YOL DÜZELTİLDİ!
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
@@ -24,7 +24,6 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
-              {/* İşte eksik olan o sihirli satır: */}
               <Route path="/update-password" element={<UpdatePassword />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
