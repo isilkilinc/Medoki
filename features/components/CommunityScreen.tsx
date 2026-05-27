@@ -12,7 +12,7 @@ interface Comment {
 
 interface Post {
   id: string;
-  user_id: string; // Gönderi sahibini kontrol etmek için gerekli
+  user_id: string;
   author_name: string;
   medication_name: string;
   content: string;
@@ -25,9 +25,6 @@ interface Post {
 export default function CommunityScreen() {
   const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
-  const [newPost, setNewPost] = useState("");
-  const [medTag, setMedTag] = useState("");
-  const [isAnonymous, setIsAnonymous] = useState(false);
   const [commentText, setCommentText] = useState("");
 
   useEffect(() => { fetchPosts(); }, []);
@@ -37,7 +34,6 @@ export default function CommunityScreen() {
     if (data) setPosts(data.map(p => ({ ...p, showComments: false })));
   }
 
-  // SİLME FONKSİYONU
   async function handleDeletePost(postId: string) {
     await supabase.from("community_posts").delete().eq("id", postId);
     fetchPosts();
@@ -56,7 +52,25 @@ export default function CommunityScreen() {
 
   return (
     <main className="min-h-screen bg-background p-4 pb-24">
-      {/* ... (Header ve Paylaşım kısmı aynı kalabilir) ... */}
-
       {posts.map((post) => (
-        <div key={post.id} className="bg-card border border-border/50 p-5 rounded-3xl shadow
+        <div key={post.id} className="bg-card border border-border/50 p-5 rounded-3xl shadow-sm mb-4">
+          <div className="flex justify-between items-start mb-3">
+            <span className="text-xs font-bold text-primary">💊 {post.medication_name}</span>
+            {user?.id === post.user_id && (
+              <button onClick={() => handleDeletePost(post.id)} className="text-red-500 hover:text-red-700">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          <p className="text-sm text-foreground/90">{post.content}</p>
+          
+          <div className="flex gap-4 pt-4 mt-4 border-t border-border/50">
+            <button onClick={() => toggleComments(post.id)} className="flex items-center gap-2 text-xs text-muted-foreground hover:text-primary">
+              <MessageSquare className="w-4 h-4" /> Yorumlar ({post.comments?.length || 0})
+            </button>
+          </div>
+
+          {post.showComments && (
+            <div className="mt-4 pt-4 border-t border-dashed border-border/50 space-y-3">
+              {
