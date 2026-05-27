@@ -1,6 +1,8 @@
-import { Home, PlusCircle, BarChart2, User, Settings } from "lucide-react";
+import { Home, PlusCircle, BarChart2, User, Settings, MessageCircleHeart } from "lucide-react"; // MessageCircleHeart eklendi
 import { useLanguage } from "@/lib/i18n";
-export type TabType = "home" | "add" | "stats" | "profile" | "settings";
+
+// "community" seçeneği eklendi
+export type TabType = "home" | "add" | "stats" | "community" | "profile" | "settings";
 
 interface BottomNavProps {
   activeTab: TabType;
@@ -19,6 +21,10 @@ const BottomNav = ({ activeTab, onChangeTab }: BottomNavProps) => {
       </button>
       <button className={`bottom-nav-item ${activeTab === 'stats' ? 'active' : ''}`} onClick={() => onChangeTab('stats')}>
         <BarChart2 className="w-5 h-5" /><span>İstatistik</span>
+      </button>
+      {/* YENİ TOPLULUK BUTONU */}
+      <button className={`bottom-nav-item ${activeTab === 'community' ? 'active' : ''}`} onClick={() => onChangeTab('community')}>
+        <MessageCircleHeart className="w-5 h-5" /><span>Topluluk</span>
       </button>
       <button className={`bottom-nav-item ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => onChangeTab('profile')}>
         <User className="w-5 h-5" /><span>Profil</span>
