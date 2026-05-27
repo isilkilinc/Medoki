@@ -1,4 +1,5 @@
-import UpdatePassword from "./pages/UpdatePassword"; // YOL DÜZELTİLDİ!
+import UpdatePassword from "./pages/UpdatePassword";
+import CommunityScreen from "./pages/CommunityScreen"; // YENİ EKLENDİ
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
@@ -8,7 +9,6 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
-
 import { GamificationProvider } from "./contexts/GamificationContext";
 
 const queryClient = new QueryClient();
@@ -25,6 +25,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/update-password" element={<UpdatePassword />} />
+              <Route path="/community" element={<CommunityScreen />} /> {/* YENİ EKLENDİ */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
