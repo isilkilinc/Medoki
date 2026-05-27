@@ -1,23 +1,19 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
-import { MessageCircleHeart, Heart, Sparkles, Send, MessageSquare, Trash2 } from "lucide-react";
+import { MessageSquare, Trash2, Send } from "lucide-react";
 
 interface Comment {
   id: string;
   author_name: string;
   content: string;
-  created_at: string;
 }
 
 interface Post {
   id: string;
   user_id: string;
-  author_name: string;
   medication_name: string;
   content: string;
-  likes_count: number;
-  created_at: string;
   comments?: Comment[];
   showComments?: boolean;
 }
@@ -62,19 +58,31 @@ export default function CommunityScreen() {
               </button>
             )}
           </div>
-
           <p className="text-sm text-foreground/90">{post.content}</p>
-          
           <div className="flex gap-4 pt-4 mt-4 border-t border-border/50">
             <button onClick={() => toggleComments(post.id)} className="flex items-center gap-2 text-xs text-muted-foreground hover:text-primary">
               <MessageSquare className="w-4 h-4" /> Yorumlar ({post.comments?.length || 0})
             </button>
           </div>
-
           {post.showComments && (
             <div className="mt-4 pt-4 border-t border-dashed border-border/50 space-y-3">
-              {
-</div>
+              {post.comments?.map((c) => (
+                <div key={c.id} className="bg-muted/30 p-3 rounded-xl text-xs">
+                  <span className="font-bold">{c.author_name}:</span> {c.content}
+                </div>
+              ))}
+              <div className="flex gap-2">
+                <input 
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs"
+                  placeholder="Yorum yaz..."
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                />
+                <button onClick={() => handleAddComment(post.id)} className="p-2 bg-primary text-white rounded-lg"><Send className="w-4 h-4"/></button>
+              </div>
+            </div>
+          )}
+        </div>
       ))}
     </main>
   );
