@@ -24,6 +24,8 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
+              {/* İşte eksik olan o sihirli satır: */}
+              <Route path="/update-password" element={<UpdatePassword />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
