@@ -65,8 +65,24 @@ export default function TodayScreen() {
     const currentStats = gameStats || { xp: 0, level: 1, current_streak: 0, longest_streak: 0, total_taken: 0, badges: [] };
     const newXp = currentStats.xp + 10;
     const newLevel = Math.floor(newXp / 100) + 1;
-    const isNewDay = currentStats.last_check_in !== today;
-    const newStreak = isNewDay ? currentStats.current_streak + 1 : currentStats.current_streak;
+    // Seri Kırılma Mantığı:
+    let newStreak = currentStats.current_streak;
+    
+    if (currentStats.last_check_in) {
+      // Önceki giriş ile bugün arasındaki gün farkını bul
+      const lastDate = new Date(currentStats.last_check_in);
+      const currDate = new Date(today);
+      const diffDays = Math.floor((currDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 1) {
+        newStreak += 1; // Süper! Peş peşe 2. gün, seri artıyor.
+      } else if (diffDays > 1) {
+        newStreak = 1;  // Eyvah! Aradan gün geçmiş, seri sıfırlandı.
+      }
+    } else {
+      newStreak = 1; // Sisteme ilk defa giriyor.
+    }
+    
     const newLongest = Math.max(newStreak, currentStats.longest_streak);
 
     // Rozet kontrolü
