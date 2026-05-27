@@ -21,6 +21,8 @@ interface Post {
 export default function CommunityScreen() {
   const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
+  const [newPost, setNewPost] = useState("");
+  const [medTag, setMedTag] = useState("");
   const [commentText, setCommentText] = useState("");
 
   useEffect(() => { fetchPosts(); }, []);
@@ -28,6 +30,19 @@ export default function CommunityScreen() {
   async function fetchPosts() {
     const { data } = await supabase.from("community_posts").select("*, comments:community_comments(*)").order("created_at", { ascending: false });
     if (data) setPosts(data.map(p => ({ ...p, showComments: false })));
+  }
+
+  async function handleShare() {
+    if (!newPost.trim() || !medTag.trim() || !user) return;
+    await supabase.from("community_posts").insert({
+      user_id: user.id,
+      medication_name: medTag.trim(),
+      content: newPost.trim(),
+      author_name: "Medoki Üyesi"
+    });
+    setNewPost("");
+    setMedTag("");
+    fetchPosts();
   }
 
   async function handleDeletePost(postId: string) {
@@ -48,6 +63,29 @@ export default function CommunityScreen() {
 
   return (
     <main className="min-h-screen bg-background p-4 pb-24">
+      {/* Paylaşım Alanı */}
+      <div className="bg-card border border-border/50 p-5 rounded-3xl shadow-sm mb-6">
+        <input
+          value={medTag}
+          onChange={(e) => setMedTag(e.target.value)}
+          placeholder="İlaç/Takviye ismi..."
+          className="w-full bg-muted/40 border border-border rounded-xl px-4 py-2 text-sm mb-2 focus:ring-2 focus:ring-primary/50 outline-none"
+        />
+        <textarea
+          value={newPost}
+          onChange={(e) => setNewPost(e.target.value)}
+          placeholder="Deneyimini paylaş..."
+          className="w-full h-20 bg-muted/40 border border-border rounded-xl p-3 text-sm mb-2 focus:ring-2 focus:ring-primary/50 outline-none"
+        />
+        <button 
+          onClick={handleShare} 
+          className="w-full bg-primary text-white py-2 rounded-xl text-sm font-bold hover:bg-primary/90 transition-all"
+        >
+          Paylaş
+        </button>
+      </div>
+
+      {/* Gönderi Listesi */}
       {posts.map((post) => (
         <div key={post.id} className="bg-card border border-border/50 p-5 rounded-3xl shadow-sm mb-4">
           <div className="flex justify-between items-start mb-3">
