@@ -74,3 +74,8 @@ export default function CommunityScreen() {
           {post.showComments && (
             <div className="mt-4 pt-4 border-t border-dashed border-border/50 space-y-3">
               {
+</div>
+      ))}
+    </main>
+  );
+}
