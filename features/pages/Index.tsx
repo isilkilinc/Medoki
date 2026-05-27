@@ -6,6 +6,7 @@ import AddMedicationScreen from "@/components/AddMedicationScreen";
 import StatsScreen from "@/components/StatsScreen";
 import ProfileScreen from "@/components/ProfileScreen";
 import SettingsScreen from "@/components/SettingsScreen";
+import CommunityScreen from "@/components/CommunityScreen"; // YENİ EKRANI BURAYA IMPORT EDİYORUZ
 import { useTheme } from "@/lib/theme";
 
 const Index = () => {
@@ -22,6 +23,8 @@ const Index = () => {
         {activeTab === "home" && <TodayScreen />}
         {activeTab === "add" && <AddMedicationScreen onBack={() => setActiveTab("home")} />}
         {activeTab === "stats" && <StatsScreen />}
+        {/* YENİ EKRANI BURAYA EKLİYORUZ */}
+        {activeTab === "community" && <CommunityScreen />} 
         {activeTab === "profile" && <ProfileScreen />}
         {activeTab === "settings" && <SettingsScreen />}
       </main>
