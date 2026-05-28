@@ -1,37 +1,26 @@
-// Index.tsx (Mobil / Native sürümü için başlangıç)
 import React, { useState } from 'react';
-
-// Artık web bileşenleri yerine native bileşenler import edeceğiz
 import BottomNav from '@/components/BottomNav'; 
 import TodayScreen from '@/components/TodayScreen';
-// Diğer ekranları da bu şekilde native olarak import edeceğiz
 
 export default function Index() {
   const [activeTab, setActiveTab] = useState('home');
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    // SafeAreaView ve StyleSheet yerine div ve Tailwind kullanıyoruz
+    <div className="flex flex-col min-h-screen bg-[#FDFBF7]">
       
-      {/* Web'deki header yerine View kullanıyoruz */}
-      <View style={styles.header}>
+      {/* Header */}
+      <header className="h-[100px] flex justify-center items-center">
         {/* Logon burada olacak */}
-      </View>
+      </header>
 
-      {/* Ana içerik alanı - Cycles esintisi buraya gelecek */}
-      <View style={styles.main}>
+      {/* Ana içerik */}
+      <main className="flex-1 px-4">
         {activeTab === 'home' && <TodayScreen />}
-        {/* Diğer tablar... */}
-      </View>
+      </main>
 
       {/* Alt navigasyon */}
       <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
-    </SafeAreaView>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FDFBF7' }, // Krem arka plan
-  header: { height: 100, justifyContent: 'center', alignItems: 'center' },
-  main: { flex: 1, paddingHorizontal: 16 }
-});
