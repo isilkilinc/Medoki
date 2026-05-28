@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-// react-native yerine standart React/Web kullanıyoruz
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { CheckCircle, Circle } from "lucide-react"; 
@@ -10,7 +9,37 @@ export default function TodayScreen() {
   const [todayLogs, setTodayLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ... loadData ve handleCheckIn aynı kalabilir (supabase çağrıları değişmez)
+  // Fonksiyonlar burada tanımlı olmalı
+  async function loadData() {
+    if (!user) return;
+    setLoading(true);
+    const today = new Date().toISOString().split("T")[0];
+    const [medsRes, logsRes] = await Promise.all([
+      supabase.from("medications").select("*").eq("user_id", user.id).eq("is_active", true),
+      supabase.from("medication_logs").select("*").eq("user_id", user.id).eq("scheduled_date", today),
+    ]);
+    if (medsRes.data) setMedications(medsRes.data);
+    if (logsRes.data) setTodayLogs(logsRes.data);
+    setLoading(false);
+  }
+
+  async function handleCheckIn(medicationId: string) {
+    if (!user) return;
+    const today = new Date().toISOString().split("T")[0];
+    
+    await supabase.from("medication_logs").insert({
+      user_id: user.id,
+      medication_id: medicationId,
+      scheduled_date: today,
+      status: "taken",
+    });
+    
+    loadData(); 
+  }
+
+  useEffect(() => { 
+    if (user) loadData(); 
+  }, [user]);
 
   const takenCount = todayLogs.filter(l => l.status === "taken").length;
   const totalCount = medications.length;
@@ -21,7 +50,7 @@ export default function TodayScreen() {
   return (
     <div className="flex flex-col gap-6 p-4 bg-[#FDFBF7] min-h-screen">
       
-      {/* 1. Dairesel İlerleme (Cycles'tan ilhamla) */}
+      {/* 1. Dairesel İlerleme */}
       <div className="flex flex-col items-center my-6">
         <div className="w-48 h-48 rounded-full bg-[#6B8E23] flex items-center justify-center">
           <div className="w-40 h-40 rounded-full bg-[#FDFBF7] flex flex-col items-center justify-center">
