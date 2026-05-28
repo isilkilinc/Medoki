@@ -107,16 +107,17 @@
   animation: fade-in-up 0.45s ease-out both;
 }
 
-/* Glass card styles */
+/* Glass card styles - neon yerine daha yumuşak gölge */
 .glass-card {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: 22px;
   padding: 20px;
-  box-shadow: 0 0 20px var(--cyan-soft), 0 8px 32px rgba(0,0,0,0.05), inset 0 1px 0 var(--glass-highlight);
+  /* Koyu gölge yerine daha hafif bir gölge */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.8);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), box-shadow 0.28s cubic-bezier(0.22,1,0.36,1), border-color 0.28s ease;
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -127,16 +128,13 @@
   }
 }
 
-/* Result card */
+/* Result card - neon border yerine daha hafif bir border */
 .result-card {
-  background: var(--result-card-bg);
-  border: 1px solid rgba(0,220,200,0.15);
+  background: white; /* Krem veya beyaz */
+  border: 1px solid hsl(var(--border));
   border-radius: 16px;
   padding: 16px;
-  box-shadow: 0 0 12px rgba(0,220,200,0.06), 0 4px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(0,220,200,0.05);
-  backdrop-filter: blur(18px) saturate(150%);
-  -webkit-backdrop-filter: blur(18px) saturate(150%);
-  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), box-shadow 0.28s cubic-bezier(0.22,1,0.36,1), border-color 0.28s ease;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
 }
 
 @media (hover: hover) and (pointer: fine) {
