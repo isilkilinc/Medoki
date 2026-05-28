@@ -1,94 +1,61 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
+// react-native yerine standart React/Web kullanıyoruz
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
-import * as Haptics from 'expo-haptics';
+import { CheckCircle, Circle } from "lucide-react"; 
 
 export default function TodayScreen() {
   const { user } = useAuth();
   const [medications, setMedications] = useState<any[]>([]);
   const [todayLogs, setTodayLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [gameStats, setGameStats] = useState<any>(null); // gameStats tanımını ekledik
 
-  // ... (loadData ve handleCheckIn mantığın kalabilir)
+  // ... loadData ve handleCheckIn aynı kalabilir (supabase çağrıları değişmez)
 
   const takenCount = todayLogs.filter(l => l.status === "taken").length;
   const totalCount = medications.length;
   const progressPercent = totalCount > 0 ? (takenCount / totalCount) * 100 : 0;
 
-  if (loading) return (
-    <View style={styles.center}>
-      <ActivityIndicator size="large" color="#6B8E23" />
-    </View>
-  );
+  if (loading) return <div className="flex justify-center pt-20 text-primary">Yükleniyor...</div>;
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* 1. Dairesel İlerleme (Cycles Vizyonu) */}
-      <View style={styles.circularContainer}>
-        <View style={styles.outerCircle}>
-          <View style={styles.innerCircle}>
-            <Text style={styles.progressText}>{Math.round(progressPercent)}%</Text>
-            <Text style={styles.statusText}>Tamamlandı</Text>
-          </View>
-        </View>
-      </View>
+    <div className="flex flex-col gap-6 p-4 bg-[#FDFBF7] min-h-screen">
+      
+      {/* 1. Dairesel İlerleme (Cycles'tan ilhamla) */}
+      <div className="flex flex-col items-center my-6">
+        <div className="w-48 h-48 rounded-full bg-[#6B8E23] flex items-center justify-center">
+          <div className="w-40 h-40 rounded-full bg-[#FDFBF7] flex flex-col items-center justify-center">
+            <span className="text-3xl font-bold text-[#6B8E23]">{Math.round(progressPercent)}%</span>
+            <span className="text-xs text-gray-400">Tamamlandı</span>
+          </div>
+        </div>
+      </div>
 
-      {/* 2. Oyun İstatistikleri */}
-      <View style={styles.statsCard}>
-        <Text style={styles.streakText}>🔥 {gameStats?.current_streak || 0} Günlük Seri</Text>
-        <Text style={styles.levelText}>Seviye {gameStats?.level || 1}</Text>
-      </View>
-
-      {/* 3. İlaçlar Listesi */}
-      <Text style={styles.sectionTitle}>Bugünün İlaçları</Text>
-      {medications.map((med) => {
-        const taken = todayLogs.find((l) => l.medication_id === med.id && l.status === "taken");
-        return (
-          <View key={med.id} style={[styles.medCard, taken && styles.medCardTaken]}>
-            <View style={styles.medInfo}>
-              <Text style={styles.medIcon}>{med.icon}</Text>
-              <View>
-                <Text style={styles.medName}>{med.name}</Text>
-                <Text style={styles.medDosage}>{med.dosage}</Text>
-              </View>
-            </View>
-            <TouchableOpacity 
-              style={[styles.checkButton, taken && styles.checkButtonTaken]}
-              onPress={() => handleCheckIn(med.id)}
-              disabled={!!taken}
-            >
-              <Text style={styles.buttonText}>{taken ? "Alındı" : "Aldım"}</Text>
-            </TouchableOpacity>
-          </View>
-        );
-      })}
-    </ScrollView>
+      {/* 2. İlaçlar Listesi */}
+      <h2 className="font-bold text-lg text-gray-800">Bugünün İlaçları</h2>
+      <div className="flex flex-col gap-3">
+        {medications.map((med) => {
+          const taken = todayLogs.find((l) => l.medication_id === med.id && l.status === "taken");
+          return (
+            <div key={med.id} className={`flex items-center justify-between p-4 rounded-2xl border ${taken ? "border-[#6B8E23]/30 bg-[#F9FCF8]" : "border-gray-200 bg-white"}`}>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{med.icon}</span>
+                <div>
+                  <p className="font-semibold text-gray-800">{med.name}</p>
+                  <p className="text-xs text-gray-500">{med.dosage}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => handleCheckIn(med.id)}
+                disabled={!!taken}
+                className={`px-4 py-2 rounded-xl text-xs font-bold ${taken ? "bg-[#D1D8C0] text-white" : "bg-[#6B8E23] text-white"}`}
+              >
+                {taken ? "Alındı" : "Aldım"}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { padding: 20, backgroundColor: '#FDFBF7' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  // Daire Stilleri
-  circularContainer: { alignItems: 'center', marginVertical: 30 },
-  outerCircle: { width: 200, height: 200, borderRadius: 100, backgroundColor: '#6B8E23', justifyContent: 'center', alignItems: 'center' },
-  innerCircle: { width: 180, height: 180, borderRadius: 90, backgroundColor: '#FDFBF7', justifyContent: 'center', alignItems: 'center' },
-  progressText: { fontSize: 32, fontWeight: 'bold', color: '#6B8E23' },
-  statusText: { fontSize: 12, color: '#888' },
-  // Diğer Stiller
-  statsCard: { backgroundColor: '#FFFFFF', padding: 20, borderRadius: 24, marginBottom: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 3 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#2C3E50', marginBottom: 15 },
-  medCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#FFFFFF', padding: 15, borderRadius: 20, marginBottom: 10, borderWidth: 1, borderColor: '#F0F0F0' },
-  medCardTaken: { backgroundColor: '#F9FCF8', borderColor: '#6B8E23' },
-  medInfo: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  medName: { fontWeight: '600', fontSize: 16 },
-  medDosage: { color: '#7F8C8D', fontSize: 12 },
-  medIcon: { fontSize: 24 },
-  checkButton: { backgroundColor: '#6B8E23', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 12 },
-  checkButtonTaken: { backgroundColor: '#D1D8C0' },
-  buttonText: { color: 'white', fontWeight: 'bold', fontSize: 12 },
-  streakText: { fontWeight: 'bold', color: '#D35400' },
-  levelText: { color: '#6B8E23' }
-});
