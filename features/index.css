@@ -4,264 +4,117 @@
 
 @layer base {
   :root {
-    /* Huzurlu bir krem arka plan */
     --background: 40 30% 98%; 
     --foreground: 0 0% 29%;
-
-    /* Saf beyaz kartlar */
     --card: 0 0% 100%;
     --card-foreground: 0 0% 29%;
-
-    /* Şifa veren profesyonel Zeytin Yeşili */
     --primary: 80 60% 35%;
     --primary-foreground: 0 0% 100%;
-
-    /* Yumuşak sınır çizgileri */
     --border: 40 20% 90%;
     --input: 40 20% 90%;
     --ring: 80 60% 35%;
-
     --radius: 1rem;
-
-    /* Glass efektlerini daha doğal yapalım */
-    --glass-bg: rgba(255,255,255,0.7);
-    --glass-border: rgba(128,128,128,0.15);
-    --glass-highlight: rgba(255,255,255,0.8);
+    
+    /* Doğal, yumuşak cam efektleri */
+    --glass-bg: rgba(255,255,255,0.8);
+    --glass-border: rgba(128,128,128,0.1);
+    --glass-highlight: rgba(255,255,255,0.9);
     --glass-blur: blur(16px);
-
-    /* Neon etkisi yerine daha doğal bir parlama */
-    --cyan-glow: rgba(128,128,128,0.1);
-    --cyan-soft: rgba(0,0,0,0.03);
-  }
-
-  .dark {
-    --background: 220 50% 7%;
-    --foreground: 0 0% 95%;
-
-    --card: 220 45% 10%;
-    --card-foreground: 0 0% 95%;
-
-    --popover: 220 45% 10%;
-    --popover-foreground: 0 0% 95%;
-
-    --primary: 170 85% 45%;
-    --primary-foreground: 220 50% 7%;
-
-    --secondary: 217 80% 55%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 220 30% 15%;
-    --muted-foreground: 0 0% 60%;
-
-    --accent: 170 85% 45%;
-    --accent-foreground: 220 50% 7%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 170 40% 20%;
-    --input: 220 30% 16%;
-    --ring: 170 85% 45%;
-
-    --radius: 0.875rem;
-
-    --glass-bg: linear-gradient(145deg, rgba(16,32,56,0.85) 0%, rgba(10,22,40,0.92) 100%);
-    --glass-border: rgba(0,220,200,0.18);
-    --glass-highlight: rgba(0,220,200,0.06);
-    --glass-blur: blur(24px) saturate(160%);
-
-    --cyan-glow: rgba(0,220,200,0.35);
-    --cyan-soft: rgba(0,220,200,0.12);
-
-    --bottom-nav-bg: linear-gradient(180deg, rgba(8,18,34,0.92) 0%, rgba(6,14,28,0.98) 100%);
-    --body-bg: linear-gradient(180deg, hsl(220 50% 9%) 0%, hsl(220 50% 5%) 100%);
-    --result-card-bg: linear-gradient(160deg, rgba(16,32,56,0.9) 0%, rgba(10,22,40,0.95) 100%);
-    --result-card-ux-bg: linear-gradient(160deg, rgba(0,220,200,0.08) 0%, rgba(10,22,40,0.95) 100%);
   }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground antialiased;
-    background: var(--body-bg);
+  * { @apply border-border; }
+  body { 
+    @apply bg-background text-foreground antialiased; 
     min-height: 100vh;
-    -webkit-tap-highlight-color: transparent;
   }
 }
 
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in-up {
-  animation: fade-in-up 0.45s ease-out both;
-}
-
-/* Glass card styles - neon yerine daha yumuşak gölge */
+/* Glass kartlar - neon yok, sadece temiz gölge */
 .glass-card {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: 22px;
   padding: 20px;
-  /* Koyu gölge yerine daha hafif bir gölge */
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.8);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1);
+  transition: transform 0.2s ease;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .glass-card:hover {
-    transform: scale(1.005);
-    border-color: rgba(0,220,200,0.32);
-    box-shadow: 0 0 30px var(--cyan-glow), 0 14px 44px rgba(0,0,0,0.35), inset 0 1px 0 var(--glass-highlight);
-  }
-}
-
-/* Result card - neon border yerine daha hafif bir border */
+/* Result card - tamamen temiz */
 .result-card {
-  background: white; /* Krem veya beyaz */
+  background: white;
   border: 1px solid hsl(var(--border));
   border-radius: 16px;
   padding: 16px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .result-card:hover {
-    transform: translateY(-2px) scale(1.008);
-    border-color: rgba(0,220,200,0.3);
-    box-shadow: 0 0 24px rgba(0,220,200,0.12), 0 12px 36px rgba(0,0,0,0.25), inset 0 1px 0 rgba(0,220,200,0.08);
-  }
-}
-
-/* UX card variant */
-.result-card-ux {
-  border-color: rgba(0,220,200,0.25);
-  background: var(--result-card-ux-bg);
-}
-
-/* Ambient orbs */
-.ambient-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(120px);
-  opacity: 0.18;
-  will-change: transform;
-}
-
-.ambient-orb--violet {
-  width: min(78vw, 520px);
-  height: min(78vw, 520px);
-  background: radial-gradient(circle at 30% 30%, rgba(139,125,107,0.1), rgba(0,150,136,0.2) 55%, transparent 70%);
-  top: -12%;
-  right: -18%;
-}
-
-.ambient-orb--indigo {
-  width: min(72vw, 480px);
-  height: min(72vw, 480px);
-  background: radial-gradient(circle at 60% 50%, rgba(0,180,200,0.35), rgba(0,100,120,0.15) 55%, transparent 70%);
-  bottom: -22%;
-  left: -20%;
-}
-
-/* Share FAB */
+/* Paylaşım butonu - tamamen zeytin yeşili */
 .btn-share-fab {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 12px 18px;
+  padding: 12px 24px;
   border-radius: 999px;
-  background: hsl(var(--primary)); /* Zeytin yeşilin */
+  background: hsl(var(--primary));
   color: white;
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(80, 100, 30, 0.2); /* Hafif yeşilimsi gölge */
-  transition: all 0.22s ease;
+  box-shadow: 0 4px 12px rgba(80, 100, 30, 0.2);
+  transition: all 0.2s ease;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .btn-share-fab:hover:not(:disabled) {
-    transform: translateY(-2px);
-    border-color: rgba(0,220,200,0.5);
-    box-shadow: 0 0 30px rgba(0,220,200,0.2), 0 14px 40px rgba(0,0,0,0.32), inset 0 1px 0 rgba(0,220,200,0.15);
-  }
+.btn-share-fab:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
 }
 
-.btn-share-fab:active:not(:disabled) {
-  transform: scale(0.96);
-}
-
-.btn-share-fab:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-/* Bottom nav */
+/* Alt Navigasyon - neon etkilerden arındırıldı */
 .bottom-nav {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  border-top: 1px solid hsl(var(--border));
   display: flex;
-  align-items: center;
   justify-content: space-around;
-  padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
-  background: var(--bottom-nav-bg);
-  border-top: 1px solid rgba(0,220,200,0.12);
-  backdrop-filter: blur(20px) saturate(140%);
-  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  padding: 10px 0;
+  backdrop-filter: blur(10px);
 }
 
 .bottom-nav-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 6px 12px;
-  border: none;
-  background: none;
   color: hsl(0 0% 50%);
   font-size: 10px;
-  font-weight: 500;
   cursor: pointer;
-  transition: color 0.2s ease;
 }
 
 .bottom-nav-item.active {
-  color: hsl(80 60% 35%); /* Primary renginle aynı */
+  color: hsl(var(--primary));
 }
 
 .bottom-nav-scan {
-  /* Neon yerine daha "soft" bir yeşil shadow */
-  @apply bg-primary text-white shadow-[0_8px_20px_rgba(80,100,30,0.3)];
-}
-.bottom-nav-scan:hover {
-  @apply shadow-[0_12px_44px_rgba(52,211,153,0.7)] scale-[1.03];
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-20px);
+  box-shadow: 0 4px 15px rgba(80, 100, 30, 0.3);
 }
 
-.bottom-nav-scan:active {
-  @apply scale-95 shadow-[0_4px_24px_rgba(52,211,153,0.3)];
+/* Ambient Orbs - neon yerine toprak tonları */
+.ambient-orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.1; }
+.ambient-orb--violet { 
+  background: radial-gradient(circle, #8B7D6B, transparent); 
+  width: 300px; height: 300px; top: -50px; right: -50px; 
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .glass-card, .result-card {
-    transition: none;
-  }
-  .animate-fade-in-up {
-    animation: none;
-  }
+.ambient-orb--indigo { 
+  background: radial-gradient(circle, #6B8E23, transparent); 
+  width: 300px; height: 300px; bottom: -50px; left: -50px; 
 }
