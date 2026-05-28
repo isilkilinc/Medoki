@@ -113,7 +113,7 @@
   border: 1px solid var(--glass-border);
   border-radius: 22px;
   padding: 20px;
-  box-shadow: 0 0 20px var(--cyan-soft), 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 var(--glass-highlight);
+  box-shadow: 0 0 20px var(--cyan-soft), 0 8px 32px rgba(0,0,0,0.05), inset 0 1px 0 var(--glass-highlight);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), box-shadow 0.28s cubic-bezier(0.22,1,0.36,1), border-color 0.28s ease;
@@ -165,7 +165,7 @@
 .ambient-orb--violet {
   width: min(78vw, 520px);
   height: min(78vw, 520px);
-  background: radial-gradient(circle at 30% 30%, rgba(0,220,200,0.4), rgba(0,150,136,0.2) 55%, transparent 70%);
+  background: radial-gradient(circle at 30% 30%, rgba(139,125,107,0.1), rgba(0,150,136,0.2) 55%, transparent 70%);
   top: -12%;
   right: -18%;
 }
