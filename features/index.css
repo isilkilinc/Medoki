@@ -4,48 +4,34 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 220 50% 10%;
+    /* Huzurlu bir krem arka plan */
+    --background: 40 30% 98%; 
+    --foreground: 0 0% 29%;
 
+    /* Saf beyaz kartlar */
     --card: 0 0% 100%;
-    --card-foreground: 220 50% 10%;
+    --card-foreground: 0 0% 29%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 50% 10%;
-
-    --primary: 170 85% 40%;
+    /* Şifa veren profesyonel Zeytin Yeşili */
+    --primary: 80 60% 35%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 220 50% 10%;
+    /* Yumuşak sınır çizgileri */
+    --border: 40 20% 90%;
+    --input: 40 20% 90%;
+    --ring: 80 60% 35%;
 
-    --muted: 220 14% 94%;
-    --muted-foreground: 220 10% 46%;
+    --radius: 1rem;
 
-    --accent: 170 85% 45%;
-    --accent-foreground: 220 50% 10%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 220 13% 88%;
-    --input: 220 13% 88%;
-    --ring: 170 85% 40%;
-
-    --radius: 0.875rem;
-
-    --glass-bg: linear-gradient(145deg, rgba(255,255,255,0.7) 0%, rgba(245,247,250,0.85) 100%);
-    --glass-border: rgba(0,220,200,0.25);
+    /* Glass efektlerini daha doğal yapalım */
+    --glass-bg: rgba(255,255,255,0.7);
+    --glass-border: rgba(128,128,128,0.15);
     --glass-highlight: rgba(255,255,255,0.8);
-    --glass-blur: blur(24px) saturate(160%);
+    --glass-blur: blur(16px);
 
-    --cyan-glow: rgba(0,220,200,0.25);
-    --cyan-soft: rgba(0,220,200,0.1);
-
-    --bottom-nav-bg: linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(245,247,250,0.98) 100%);
-    --body-bg: linear-gradient(180deg, hsl(0 0% 99%) 0%, hsl(220 10% 96%) 100%);
-    --result-card-bg: linear-gradient(160deg, rgba(255,255,255,0.8) 0%, rgba(250,250,252,0.95) 100%);
-    --result-card-ux-bg: linear-gradient(160deg, rgba(0,220,200,0.06) 0%, rgba(255,255,255,0.95) 100%);
+    /* Neon etkisi yerine daha doğal bir parlama */
+    --cyan-glow: rgba(128,128,128,0.1);
+    --cyan-soft: rgba(0,0,0,0.03);
   }
 
   .dark {
