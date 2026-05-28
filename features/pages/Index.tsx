@@ -1,6 +1,5 @@
 // Index.tsx (Mobil / Native sürümü için başlangıç)
 import React, { useState } from 'react';
-import { View, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
 
 // Artık web bileşenleri yerine native bileşenler import edeceğiz
 import BottomNav from '@/components/BottomNav'; 
