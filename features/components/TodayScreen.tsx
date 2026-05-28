@@ -57,13 +57,15 @@ export default function TodayScreen() {
         </div>
       </div>
 
-      {/* 2. Dinamik Liste */}
       <h2 className="font-bold text-lg text-gray-800">Bugünün İlaçları</h2>
       
       {medications.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-10 border-2 border-dashed border-gray-200 rounded-3xl mx-2">
           <p className="text-gray-500 mb-4 text-sm">Henüz ilaç eklemedin.</p>
-          <button className="flex items-center gap-2 bg-[#6B8E23] text-white px-6 py-3 rounded-full font-bold shadow-md hover:scale-105 transition-transform">
+          <button 
+            onClick={() => window.location.href = '/add-medication'}
+            className="flex items-center gap-2 bg-[#6B8E23] text-white px-6 py-3 rounded-full font-bold shadow-md hover:scale-105 transition-transform"
+          >
             <Plus size={20} /> İlaç Ekle
           </button>
         </div>
@@ -80,6 +82,7 @@ export default function TodayScreen() {
                     <p className="text-xs text-gray-500">{med.dosage}</p>
                   </div>
                 </div>
+                {/* Sadece ilaç listelenirken "Aldım" butonu görünür */}
                 <button 
                   onClick={() => handleCheckIn(med.id)}
                   disabled={!!taken}
