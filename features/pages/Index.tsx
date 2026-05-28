@@ -1,36 +1,38 @@
-import { useState } from "react";
-import AmbientBackground from "@/components/AmbientBackground";
-import BottomNav, { TabType } from "@/components/BottomNav";
-import TodayScreen from "@/components/TodayScreen";
-import AddMedicationScreen from "@/components/AddMedicationScreen";
-import StatsScreen from "@/components/StatsScreen";
-import ProfileScreen from "@/components/ProfileScreen";
-import SettingsScreen from "@/components/SettingsScreen";
-import CommunityScreen from "@/components/CommunityScreen"; // YENİ EKRANI BURAYA IMPORT EDİYORUZ
-import { useTheme } from "@/lib/theme";
+// Index.tsx (Mobil / Native sürümü için başlangıç)
+import React, { useState } from 'react';
+import { View, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
 
-const Index = () => {
-  const { isDark } = useTheme();
-  const [activeTab, setActiveTab] = useState<TabType>("home");
+// Artık web bileşenleri yerine native bileşenler import edeceğiz
+import BottomNav from '@/components/BottomNav'; 
+import TodayScreen from '@/components/TodayScreen';
+// Diğer ekranları da bu şekilde native olarak import edeceğiz
+
+export default function Index() {
+  const [activeTab, setActiveTab] = useState('home');
 
   return (
-    <>
-      <AmbientBackground />
-      <header className="relative z-[1] pt-7 pb-3 text-center px-4 flex justify-center">
-        <img src="/logo.png" alt="Medoki Logo" className="w-auto h-[100px] object-contain drop-shadow-[0_0_12px_rgba(52,211,153,0.6)]" />
-      </header>
-      <main className="relative z-[1] max-w-[480px] mx-auto px-4 pb-24">
-        {activeTab === "home" && <TodayScreen />}
-        {activeTab === "add" && <AddMedicationScreen onBack={() => setActiveTab("home")} />}
-        {activeTab === "stats" && <StatsScreen />}
-        {/* YENİ EKRANI BURAYA EKLİYORUZ */}
-        {activeTab === "community" && <CommunityScreen />} 
-        {activeTab === "profile" && <ProfileScreen />}
-        {activeTab === "settings" && <SettingsScreen />}
-      </main>
-      <BottomNav activeTab={activeTab} onChangeTab={setActiveTab} />
-    </>
-  );
-};
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
+      
+      {/* Web'deki header yerine View kullanıyoruz */}
+      <View style={styles.header}>
+        {/* Logon burada olacak */}
+      </View>
 
-export default Index;
+      {/* Ana içerik alanı - Cycles esintisi buraya gelecek */}
+      <View style={styles.main}>
+        {activeTab === 'home' && <TodayScreen />}
+        {/* Diğer tablar... */}
+      </View>
+
+      {/* Alt navigasyon */}
+      <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#FDFBF7' }, // Krem arka plan
+  header: { height: 100, justifyContent: 'center', alignItems: 'center' },
+  main: { flex: 1, paddingHorizontal: 16 }
+});
